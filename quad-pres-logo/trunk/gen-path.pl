@@ -15,7 +15,23 @@ my $u_pipes_height = $letter_height - $u_arc_height;
 
 my $u_width = int($letter_height * 1);
 
+my $large_letter_height = int($letter_height*1.5);
+
 my $path = SVG::Path->new();
+
+sub gen_Q
+{
+    my $curve_len = int($letter_height / 2);
+    my @init_off = @{$path->get_coords()};
+    # Move to the line base.
+    $path->move_rel(0, $large_letter_height);
+    $path->bezier_rel(-$curve_len, 0, -$curve_len, -$large_letter_height, 0, -$large_letter_height);
+    $path->bezier_rel($curve_len, 0, $curve_len, $large_letter_height, 0, $large_letter_height);
+    $path->line_rel(int($letter_height / 2), 0);
+    my @last_off = @{$path->get_coords()};
+    # Move to the next letter.
+    $path->move_rel(int($letter_height / 2), $init_off[1]-$last_off[1]);
+}
 
 sub gen_u
 {
@@ -28,6 +44,7 @@ sub gen_u
 sub gen_path
 {
     $path->move_rel(10,10);
+    gen_Q();
     gen_u();
     return join("", map { "$_ " } @{$path->get_commands()});
 }
