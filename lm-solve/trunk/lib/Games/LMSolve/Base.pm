@@ -4,6 +4,10 @@ use strict;
 
 use Getopt::Long;
 
+use vars qw($VERSION);
+
+$VERSION = '0.7.4';
+
 use Exporter;
 
 use vars qw(@ISA @EXPORT_OK);

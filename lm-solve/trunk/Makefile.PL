@@ -1,19 +1,16 @@
 use ExtUtils::MakeMaker;
 
-my $version;
-
-open VER, "<ver.txt";
-$version = <VER>;
-chomp($version);
-close(VER);
-
 WriteMakefile(
     'NAME' => 'Games::LMSolve',
     'DISTNAME' => 'Games-LMSolve',
     'EXE_FILES' => ["lm-solve"],
-    'VERSION' => $version,
+    'VERSION_FROM' => 'lib/Games/LMSolve/Base.pm',
     );
 
+use lib './lib';
+require Games::LMSolve::Base;
+
+my $version = $Games::LMSolve::Base::VERSION;
 print "Generating the RPM SPEC file\n";
 open I, "<lm-solve.spec.in";
 open O, ">lm-solve.spec";
