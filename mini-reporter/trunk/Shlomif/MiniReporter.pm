@@ -449,7 +449,7 @@ sub add_post
 
     my $q = $self->{'cgi'};
 
-    return join("\n<br />\n", (map { "$_ = " . $q->param($_) } $q->param()));
+    # return join("\n<br />\n", (map { "$_ = " . $q->param($_) } $q->param()));
     
     my %config = %{$self->{'config'}};
 
@@ -481,7 +481,7 @@ sub add_post
     $ret .= linux_il_header($config{'strings'}->{'add_result_title'}, "Success");
     
 
-    if ($q->param('Preview'))
+    if ($q->param('preview'))
     {
         my $form = 
             WWW::Form->new(

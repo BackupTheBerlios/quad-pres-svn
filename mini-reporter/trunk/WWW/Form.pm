@@ -1237,6 +1237,11 @@ sub _getSubmitButtonHTML {
         $xhtml .= " id='$args{submit_class}'";
     }
 
+    if ($args{submit_name}) {
+        $xhtml .= " name='$args{submit_name}'";
+        
+    }
+
     # Add any other attribute name value pairs that the developer may want to
     # enter
     for my $attribute (keys %{$attributes}) {
@@ -1244,7 +1249,7 @@ sub _getSubmitButtonHTML {
     }
 
     $xhtml =~ s/\s$//; # Remove trailing whitespace
-    $xhtml .= "/>\n";
+    $xhtml .= " />\n";
     return $xhtml;
 }
 
