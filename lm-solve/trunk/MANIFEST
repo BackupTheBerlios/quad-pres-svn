@@ -19,3 +19,6 @@ lm-solve
 README
 TODO
 prepare_package.sh
+get-versoin.pl
+scripts/gen_use_test.pl
+t/00use.t
