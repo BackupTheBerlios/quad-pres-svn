@@ -19,6 +19,7 @@ lm-solve
 README
 TODO
 prepare_package.sh
-get-versoin.pl
+get-version.pl
 scripts/gen_use_test.pl
 t/00use.t
+META.yml                                Module meta-data (added by MakeMaker)

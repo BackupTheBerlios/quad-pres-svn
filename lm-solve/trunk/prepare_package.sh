@@ -22,7 +22,7 @@ fi
 make dist
 
 if $RPM ; then
-    rpm -tb LM-Solve-`perl get-version.pl`.tar.gz
+    rpm -tb Games-LMSolve-`perl get-version.pl`.tar.gz
 fi
 
 
