@@ -1,4 +1,10 @@
-.record { border-style : double ; border-color : green ; width : 30em;}
+.record 
+{ 
+    border-style : double ; 
+    border-color : green ; 
+    width : 30em;
+    margin-bottom : 2em;
+}
 .posted 
 { 
     text-align : right;

@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+use lib '.';
+
 use CGI;
 use Shlomif::MiniReporter;
 

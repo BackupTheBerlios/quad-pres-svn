@@ -1,4 +1,4 @@
-* Convert the output to XHTML 1.0 Strict. (and validate)
+* Make sure the output stay validated as XHTML 1.0 Strict. (and validate)
 
 * Make a Preview for the add display.
 

@@ -3,6 +3,9 @@ package Shlomif::MiniReporter;
 use strict;
 use DBI;
 use Template;
+use WWW::Form;
+
+use WWW::FieldValidator;
 
 sub initialize
 {
@@ -345,6 +348,74 @@ sub search_results
 
 }
 
+sub get_form_fields
+{
+    my $self = shift;
+
+    my $q = $self->{cgi};
+
+    my $config = $self->{config};
+
+    my %fields = ();
+
+    $fields{area} = {
+        label => "Area",
+        defaultValue => "Tel Aviv",
+        type => 'select',
+        optionsGroup => [
+            map { +{ 'label' => $_, 'value' => $_, }, } @{$config->{'areas'}},
+        ],
+        validators => [],
+    };
+
+    foreach my $f (@{$config->{fields}})
+    {
+        if ($f->{'gen'}->{'auto'})
+        {
+            next;
+        }
+        $fields{$f->{sql}} = 
+        {
+            label => $f->{'pres'},
+            defaultValue => ($q->param($f->{sql}) || ""),
+            type => ($f->{sameline} ? "text" : "textarea"),
+            validators => 
+            [ 
+                $f->{sameline} ? 
+                (
+                    WWW::FieldValidator->new(WWW::FieldValidator::REGEX_MATCH,
+                    "No newlines allowed",
+                    '^([^\n\r]*)$'
+                    ), 
+                ): 
+                ()
+            ],
+        };
+    }
+
+    return \%fields;
+}
+
+sub get_form_fields_sequence
+{
+    my $self = shift;
+
+    my $config = $self->{config};
+
+    my @ret;
+    
+    foreach my $f (@{$config->{fields}})
+    {
+        if ($f->{'gen'}->{'auto'})
+        {
+            next;
+        }
+        push @ret, $f->{sql};
+    }
+    
+    return \@ret;
+}
+
 sub add_form
 {
     my $self = shift;
@@ -355,60 +426,20 @@ sub add_form
 
     $ret .= linux_il_header("Add a job to the Linux-IL jobs' list", "Add a job");
     
-    $ret .= <<'EOF';
+    my $form = 
+        WWW::Form->new(
+            $self->get_form_fields(),
+            undef,
+            $self->get_form_fields_sequence(),
+        );
 
-<form action="add.pl" method="post">
+     $ret .= $form->get_form_HTML(
+         submit_label => "Preview", 
+         action => './add.pl',
+         submit_name => "preview",
+     );
 
-<p>
-Area: 
-<select name="area">
-EOF
-
-    ;
-
-    foreach my $area (@{$config{'areas'}})
-    {
-    	$ret .= ( "<option>" . $area . "</option>\n");
-    }
-
-    $ret .= <<'EOF';
-</select>
-</p>
-EOF
-
-
-    foreach my $field (@{$config{'fields'}})
-    {
-        if ($field->{'gen'}->{'auto'})
-        {
-            next;
-        }
-        $ret .= "<p>";
-    	$ret .= ( $field->{'pres'} .  ": ");
-    	if ($field->{'sameline'})
-    	{
-    		$ret .= ("<input name=\"" . $field->{'sql'} . "\" />");
-    	}
-    	else
-    	{
-    		$ret .= ( "<br />\n<textarea name=\"" . $field->{'sql'} . "\" rows=\"5\" cols=\"60\">\n");
-    		$ret .= "</textarea>";
-    	}
-        $ret .= "</p>";
-    }
-
-
-
-    $ret .= <<'EOF';
-<p>
-<input type="submit" value="Submit" />
-</p>
-</form>
-EOF
-	;
-	
      $ret .= linux_il_footer();
-	
 }
 
 sub add_post
