@@ -1,3 +1,27 @@
+package Games::LMSolve::Input::Scalar::FH;
+
+sub TIEHANDLE
+{
+    my $class = shift;
+    my $self = {};
+    my $buffer = shift;
+    $self->{'lines'} = [ reverse(my @a = ($buffer =~ /([^\n]*(?:\n|$))/sg)) ];
+    bless $self, $class;
+    return $self;
+}
+
+sub READLINE
+{
+    my $self = shift;
+    return pop(@{$self->{'lines'}});
+}
+
+sub EOF
+{
+    my $self = shift;
+    return (scalar(@{$self->{'lines'}}) == 0);
+}
+
 package Games::LMSolve::Input;
 
 use strict;
@@ -28,41 +52,64 @@ sub input_board
 {
     my $self = shift;
 
-    my $filename = shift;
+    my $file_spec = shift;
 
     my $spec = shift;
 
     my $ret = {};
 
+    my $file_ref;
+
     local (*I);
 
-    open(I, "<$filename") ||
-        die "Failed to read \"$filename\" : $OS_ERROR";
+    my $filename_str;
 
-    # Now we have the filehandle "I" opened.
+    if (ref($file_spec) eq "")
+    {
+        my $filename = $file_spec;
+        open(I, "<$filename") ||
+            die "Failed to read \"$filename\" : $OS_ERROR";
+
+        $file_ref = \*I;
+        $filename_str = ($filename eq "-") ? 
+            "standard input" : 
+            "\"$filename\"";
+    }
+    elsif (ref($file_spec) eq "GLOB")
+    {
+        $file_ref = $file_spec;
+        $filename_str = "FILEHANDLE";
+    }
+    elsif (ref($file_spec) eq "SCALAR")
+    {
+        tie(*I, "Games::LMSolve::Input::Scalar::FH", $$file_spec);
+        $file_ref = \*I;
+        $filename_str = "BUFFER";
+    }
+    else
+    {
+        die "Unknown file specification passed to input_board!";
+    }
+    
+    # Now we have the filehandle *$file_ref opened.
 
     my $line;
     my $line_num = 0;
 
     my $read_line = sub {
-        if (eof(I))
+        if (eof(*{$file_ref}))
         {
             return 0;
         }
-        $line = <I>;
+        $line = readline(*{$file_ref});
         $line_num++;
         chomp($line);
         return 1;
     };
 
-    my $filename_str = 
-        ($filename eq "-") ? 
-            "standard input" : 
-            "\"$filename\"";
-
     my $gen_exception = sub {
         my $text = shift;
-        close(I);
+        close(*{$file_ref});
         die "$text on $filename_str at line $line_num!\n";
     };
 
@@ -199,7 +246,7 @@ sub input_board
         }
     }
 
-    close(I);
+    close(*{$file_ref});
 
     foreach my $key (keys(%$spec))
     {

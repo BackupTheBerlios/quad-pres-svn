@@ -6,7 +6,7 @@ use Getopt::Long;
 
 use vars qw($VERSION);
 
-$VERSION = '0.7.4';
+$VERSION = '0.7.8';
 
 use Exporter;
 
@@ -194,9 +194,11 @@ sub solve_brfs_or_dfs
         if ($run_time_display)
         {
             $rtd_callback->(
+                $self,
                 'depth' => $depth,
                 'state' => $coords,
-                'move' => $state_collection->{$state}->{'m'}
+                'move' => $state_collection->{$state}->{'m'},
+                'num_iters' => $num_iters,
             );
             # print ((" " x $depth) . join(",", @$coords) . " M=" . $self->render_move($state_collection->{$state}->{'m'}) ."\n");
         }
@@ -383,6 +385,8 @@ sub display_solution
 
 sub _default_rtd_callback
 {
+    my $self = shift;
+
     my %args = @_;
     print ((" " x $args{depth}) . join(",", @{$args{state}}) . " M=" . $self->render_move($args{move}) ."\n");
 }
@@ -416,7 +420,7 @@ sub main
     $self->{'cmd_line'}->{'to_rle'} = $to_rle;
     $self->{'cmd_line'}->{'output_states'} = $output_states;
     $self->{'cmd_line'}->{'scan'} = $scan;
-    $self->set_run_time_display_callback($run_time_states_display && \&_default_rtd_callback);
+    $self->set_run_time_states_display($run_time_states_display && \&_default_rtd_callback);
 
     my $filename = shift(@ARGV) || "board.txt";
 
