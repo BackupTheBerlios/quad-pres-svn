@@ -1,0 +1,28 @@
+Pressing:
+---------
+
+* Document the charset and language and dir tags.
+
+* Deal with the address:email tag of the alon theme
+
+Long Term:
+----------
+
+* Enable reading parameters from the user $HOME/.quadpres directory
+
+* Multiple stages for slides.
+
+* quadp copy, quadp rm, quadp mv commands.
+    - quadp order meta-command
+
+* Integration with Subversion.
+
+* Write more tests.
+
+* Write a path signature for the title:
+
+    Gimp Lecture ==> Areal Effects ==> Blur ==>
+    Motion Blur
+
+* Create a nice graphical button for the "Made with Quad-Pres" link.
+
