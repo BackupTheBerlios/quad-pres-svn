@@ -420,6 +420,20 @@ sub get_form_fields_sequence
     return \@ret;
 }
 
+sub get_form
+{
+    my $self = shift;
+
+    my $form = 
+        WWW::Form->new(
+            $self->get_form_fields(),
+            undef,
+            $self->get_form_fields_sequence(),
+        );
+
+    return $form;
+}
+
 sub add_form
 {
     my $self = shift;
@@ -430,12 +444,7 @@ sub add_form
 
     $ret .= linux_il_header("Add a job to the Linux-IL jobs' list", "Add a job");
     
-    my $form = 
-        WWW::Form->new(
-            $self->get_form_fields(),
-            undef,
-            $self->get_form_fields_sequence(),
-        );
+    my $form = $self->get_form();
 
      $ret .= $form->get_form_HTML(
          submit_label => "Preview", 
@@ -481,7 +490,8 @@ sub add_post
     }
 
     my $ret = "";
-        
+
+    my $form = $self->get_form();
     
     if ($q->param('preview'))
     {
@@ -492,14 +502,9 @@ sub add_post
                 'fields' => \@field_names,
                 'values' => \@values,
             );
-                
-        my $form = 
-            WWW::Form->new(
-                $self->get_form_fields(),
-                undef,
-                $self->get_form_fields_sequence(),
-            );
 
+        
+                
         $ret .= $form->get_form_HTML(
             'buttons' =>
             [

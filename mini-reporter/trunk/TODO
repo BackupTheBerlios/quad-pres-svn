@@ -1,6 +1,7 @@
 * Make sure the output stay validated as XHTML 1.0 Strict. (and validate)
 
-* Make a Preview for the add display.
+* Validate the input of the form to display the correct record and to warn
+on errors.
 
 * Add some hints on what to put in the fields.
 
@@ -8,4 +9,15 @@
 
 * Make sure newlines work as they should in some places and don't work 
 (as they should) in others.
+
+* Convert to CGI::Application.
+
+Long-term:
+----------
+
+* Create an administration page.
+
+* Put on CPAN.
+
+* Convert to Tangram.
 
