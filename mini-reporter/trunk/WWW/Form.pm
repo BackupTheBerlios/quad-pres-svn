@@ -640,6 +640,26 @@ sub getFieldLabel {
     }
 }
 
+=head2 getFieldHint
+
+Returns the hint associated with the specified $fieldName or undef if it
+does not exist.
+
+  Example:
+
+  my $hint = $form->getFieldHint('favoriteBand');
+
+=cut
+sub getFieldHint {
+    my $self  = shift;
+    my $fieldName = shift;
+
+    my $field = $self->getField($fieldName);
+
+    return $field->{hint};
+}
+
+
 *get_field_label = \&getFieldLabel;
 
 =head2 setFieldValue
@@ -813,6 +833,10 @@ sub _setFields {
         # Add extraAttributes to pass to the field.
         $self->{fields}{$fieldName}{extraAttributes} = 
             ($fieldsData->{$fieldName}{extraAttributes} || "");
+
+        # Add the hint
+        $self->{fields}{$fieldName}{hint} = 
+            $fieldsData->{$fieldName}{hint};
     }
 }
 
@@ -946,6 +970,13 @@ sub getFieldHTMLRow {
             $attributesString
         )
         . "</td></tr>\n";
+
+    my $hint = $self->getFieldHint($fieldName);
+    
+    if (defined($hint))
+    {
+        $html .= "<tr><td colspan=\"2\">$hint</td></tr>\n";
+    }
 
     return $html;
 }

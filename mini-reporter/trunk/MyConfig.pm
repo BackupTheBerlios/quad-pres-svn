@@ -44,9 +44,20 @@ use POSIX;
             'sql' => "title",
             'pres' => "Job Title",
             'sameline' => 1,
+            'hint' => qq{A short title describing the job. Examples: <br />
+            "Perl Programmer"<br />
+            "System Administrator"<br />
+            "Embedded Linux Developer"<br />
+            "Web Designer".<br />},
         },
         {
-            qw(sql workplace pres Workplace sameline 1)
+            qw(sql workplace pres Workplace sameline 1),
+            'hint' => qq{The name of the company which will employ the 
+            nominee. <br />
+            <b>Bad entries:</b> "Work from home", <br />
+            "Tel Aviv/Haifa/etc."<br />
+            "On-site"<br />
+            (You can write Confidential.)},
         },
         {
             qw(sql description pres Description sameline 0)

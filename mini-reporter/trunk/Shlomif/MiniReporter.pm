@@ -404,6 +404,8 @@ sub get_form_fields
                     " size=\"$input_length\" " :
                     " cols=\"$input_length\" rows=\"$input_height\""
                 ),
+            # Give the hint if it exists
+            (exists($f->{hint}) ? (hint => $f->{hint}) : ()),
         };
     }
 

@@ -1,5 +1,3 @@
-* Make the fields in the form wider.
-
 * Make sure the output stay validated as XHTML 1.0 Strict. (and validate)
 
 * Validate the input of the form to display the correct record and to warn

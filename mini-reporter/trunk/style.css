@@ -29,4 +29,9 @@
 .myform td
 {
     vertical-align : top;
+    border-color : darkgreen;
+    border-style : double;
+    border-width : thin;
 }
+
+
