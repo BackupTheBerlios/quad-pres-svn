@@ -1,3 +1,5 @@
+* Put on CPAN
+
 * Implement other scans such as A*, etc.
 
 * Support the hex plank swamps
@@ -8,3 +10,5 @@
 
 * Modularize the code:
     - An API
+
+
