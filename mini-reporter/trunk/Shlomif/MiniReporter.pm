@@ -189,7 +189,11 @@ sub linux_il_header
 		$title2 = "";
 	}
 
-    my @css_path_components = (map { "../" } split(/\//, $path));
+    my $path2 = $path;
+
+    $path2 =~ s/^\///;
+
+    my @css_path_components = (map { "../" } split(/\//, $path2));
 
     my $css_path = join("", @css_path_components);
 
@@ -544,6 +548,15 @@ sub get_form_fields
         
         return $ret;
     };
+
+    my $get_attribs = sub {
+        my $class = $get_alternate_style->();
+        return ('container_attributes' => 
+                { 'class' => $class, },
+                'hint_container_attributes' => 
+                { 'class' => "$class space", },
+               );
+    };
    
     $fields{area} = {
         label => "Area",
@@ -553,7 +566,7 @@ sub get_form_fields
             map { +{ 'label' => $_, 'value' => $_, }, } @{$config->{'areas'}},
         ],
         validators => [],
-        'tr_class' => $get_alternate_style->(),
+        $get_attribs->(),
         hint => ("The area in Israel of the employing firm.<br />" . 
                 "If the work is from home, select the area of the office."),
     };
@@ -604,7 +617,7 @@ sub get_form_fields
             # Give the hint if it exists
             (exists($f->{hint}) ? (hint => $f->{hint}) : ()),
             # Highlight the odd numbered fields
-            tr_class => $get_alternate_style->(),
+            $get_attribs->(),
         };
     }
 
@@ -706,7 +719,7 @@ sub add_form
     
     my $valid_params = $form->is_valid();
 
-    my $no_cgi_params = (scalar($q->param()) == 0);
+    my $no_cgi_params = (scalar($q->param()) ? 0 : 1);
 
     if ($q->param('preview') || (! $valid_params) || $no_cgi_params)
     {
@@ -753,7 +766,6 @@ sub add_form
                     )
                 ],
                 attributes => { 'class' => "myform" },
-                hint_tr_class => "space",
             ]
          );
     }
