@@ -1,3 +1,5 @@
+* Make the fields in the form wider.
+
 * Make sure the output stay validated as XHTML 1.0 Strict. (and validate)
 
 * Validate the input of the form to display the correct record and to warn
@@ -10,7 +12,7 @@ on errors.
 * Make sure newlines work as they should in some places and don't work 
 (as they should) in others.
 
-* Convert to CGI::Application.
+* Convert to CGI::Application. (and HTML::Template ?)
 
 Long-term:
 ----------

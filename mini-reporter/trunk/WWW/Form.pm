@@ -799,6 +799,8 @@ sub _setFields {
 
         # If any validators fail, this property will contain the error
         # feedback associated with those failing validators
+        #
+        # TODO : Added by Shlomif: Should it be a [] ?
         $self->{fields}{$fieldName}{feedback} = ();
 
         # If the input type is a select box or a radio button then we need an
@@ -807,6 +809,10 @@ sub _setFields {
         if (my $optionsGroup = $fieldsData->{$fieldName}{optionsGroup}) {
             $self->{fields}{$fieldName}{optionsGroup} = \@{$optionsGroup};
         }
+
+        # Add extraAttributes to pass to the field.
+        $self->{fields}{$fieldName}{extraAttributes} = 
+            ($fieldsData->{$fieldName}{extraAttributes} || "");
     }
 }
 
@@ -921,6 +927,8 @@ sub getFieldHTMLRow {
     my $attributesString = shift;
 
     my $field = $self->getField($fieldName);
+
+    $attributesString ||= $field->{extraAttributes};
 
     my @feedback = $self->getFieldErrorFeedback($fieldName);
 
