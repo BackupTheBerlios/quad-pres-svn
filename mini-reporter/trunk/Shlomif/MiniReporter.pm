@@ -94,7 +94,9 @@ sub get_path
 {
     my $self = shift;
 
-    my $path = $ENV{'PATH_INFO'} || "";
+    my $q = $self->query();
+
+    my $path = $q->path_info();
 
     return $path;
 }
