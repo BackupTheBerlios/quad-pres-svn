@@ -252,7 +252,7 @@ sub search_results
     my $query_str = "SELECT " . join(",", "area", (map { $_->{'sql'} } @{$config{'fields'}})) .  
                     " FROM " . $config{'table_name'} . 
     		" " . $where_clause_template . 
-    		" ORDER BY id" ;
+    		" ORDER BY post_date DESC, id DESC" ;
 
     my $query = $conn->prepare($query_str);
 
