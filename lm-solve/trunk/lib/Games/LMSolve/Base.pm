@@ -52,6 +52,8 @@ sub initialize
     $self->{'state_collection'} = { };
     $self->{'cmd_line'} = { };
 
+    $self->{'num_iters'} = 0;
+
     return 0;
 }
 
@@ -135,14 +137,25 @@ sub solve_brfs_or_dfs
     my $state_collection = $self->{'state_collection'};
     my $initial_state = shift;
     my $is_dfs = shift;
-
+    my %args = @_;
+    
     my $run_time_display = $self->{'cmd_line'}->{'rt_states_display'};
-
+    my $max_iters = $args{'max_iters'} || (-1);
+    my $not_check_iters = ($max_iters < 0);
+    
     my (@queue, $state, $coords, $depth, @moves, $new_state);
 
     push @queue, $initial_state;
 
-    while (scalar(@queue))
+    my $num_iters = $self->{'num_iters'};
+    my @ret;
+
+    while (scalar(@queue) && 
+           (
+               $not_check_iters || 
+               ($max_iters > $num_iters)
+           )
+          )
     {
         if ($is_dfs)
         {
@@ -154,6 +167,8 @@ sub solve_brfs_or_dfs
         }
         $coords = $self->unpack_state($state);
         $depth = $state_collection->{$state}->{'d'};
+
+        $num_iters++;
 
         # Output the current state to the screen, assuming this option
         # is set.
@@ -169,7 +184,8 @@ sub solve_brfs_or_dfs
 
         if ($self->check_if_final_state($coords))
         {
-            return ("solved", $state);
+            @ret = ("solved", $state);
+            goto Return;
         }
         
         @moves = $self->enumerate_moves($coords);
@@ -197,62 +213,13 @@ sub solve_brfs_or_dfs
         }
     }
 
-    return ("unsolved", undef);
-}
-
-
-sub solve_hard_dfs
-{
-    my $self = shift;
-    my $state_collection = $self->{'state_collection'};
-    my $initial_state = shift;
+    @ret = ("unsolved", undef);
     
-    my $state_dfs;
-    
-    $state_dfs = sub {
-        
-        my $state = shift;
-        my $depth = shift || 0;
+    Return:
 
-        my $coords = $self->unpack_state($state);
+    $self->{'num_iters'} = $num_iters;
 
-        print ((" " x $depth) . join(",", @$coords) . " M=" . $state_collection->{$state}->{'m'} ."\n");
-
-        if ($self->check_if_unsolveable($coords))
-        {
-            return ("unsolved", undef);
-        }
-        if ($self->check_if_final_state($coords))
-        {
-            return ("solved", $state);
-        }
-
-        my @moves = $self->enumerate_moves($coords);
-
-        foreach my $m (@moves)
-        {
-            my $new_coords = $self->perform_move($coords, $m);
-            # Check if this move leads nowhere and if so - skip to the next move.
-            if (!defined($new_coords))
-            {
-                next;
-            }
-            
-            my $new_state = $self->pack_state($new_coords);
-            if (! exists($state_collection->{$new_state}))
-            {
-                $state_collection->{$new_state} = {'p' => $state, 'm' => $m};
-                my @ret = $state_dfs->($new_state, $depth+1);
-                if ($ret[0] eq "solved")
-                {
-                    return @ret;
-                }                
-            }
-        }
-        return ("unsolved",undef);
-    };
-
-    return $state_dfs->($initial_state, 0);
+    return @ret;
 }
 
 sub run_length_encoding
@@ -287,13 +254,13 @@ my %scan_functions =
         my $self = shift;
         my $initial_state = shift;
 
-        return $self->solve_brfs_or_dfs($initial_state, 1);
+        return $self->solve_brfs_or_dfs($initial_state, 1, @_);
     },
     'brfs' => sub {
         my $self = shift;
         my $initial_state = shift;
 
-        return $self->solve_brfs_or_dfs($initial_state, 0);
+        return $self->solve_brfs_or_dfs($initial_state, 0, @_);
     },
 );
 
@@ -310,7 +277,8 @@ sub solve_state
     return 
         $scan_functions{$self->{'cmd_line'}->{'scan'}}->(
             $self,
-            $state
+            $state,
+            @_
         );
 }
 

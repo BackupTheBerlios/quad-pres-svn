@@ -16,14 +16,14 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
-use Shlomif::LMSolver::Alice;
-use Shlomif::LMSolver::Minotaur;
-use Shlomif::LMSolver::Numbers;
-use Shlomif::LMSolver::Plank::Base;
-use Shlomif::LMSolver::Tilt::Single;
-use Shlomif::LMSolver::Tilt::Multi;
-use Shlomif::LMSolver::Tilt::RedBlue;
-use Shlomif::LMSolver::Plank::Hex;
+use Games::LMSolve::Alice;
+use Games::LMSolve::Minotaur;
+use Games::LMSolve::Numbers;
+use Games::LMSolve::Plank::Base;
+use Games::LMSolve::Tilt::Single;
+use Games::LMSolve::Tilt::Multi;
+use Games::LMSolve::Tilt::RedBlue;
+use Games::LMSolve::Plank::Hex;
 
 my $variant = "minotaur";
 my $help = 0;
@@ -41,15 +41,15 @@ pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 my %variants_map = 
 (
-    'alice' => "Shlomif::LMSolver::Alice",
-    'minotaur' => "Shlomif::LMSolver::Minotaur",
-    'numbers' => "Shlomif::LMSolver::Numbers",
-    'plank' => "Shlomif::LMSolver::Plank::Base",
-    'hex_plank' => "Shlomif::LMSolver::Plank::Hex",
-    'tilt_single' => "Shlomif::LMSolver::Tilt::Single",
-    'tilt_multi' => "Shlomif::LMSolver::Tilt::Multi",
-    'tilt_rb' => "Shlomif::LMSolver::Tilt::RedBlue",
-    'tilt_puzzle' => "Shlomif::LMSolver::Tilt::RedBlue",
+    'alice' => "Games::LMSolve::Alice",
+    'minotaur' => "Games::LMSolve::Minotaur",
+    'numbers' => "Games::LMSolve::Numbers",
+    'plank' => "Games::LMSolve::Plank::Base",
+    'hex_plank' => "Games::LMSolve::Plank::Hex",
+    'tilt_single' => "Games::LMSolve::Tilt::Single",
+    'tilt_multi' => "Games::LMSolve::Tilt::Multi",
+    'tilt_rb' => "Games::LMSolve::Tilt::RedBlue",
+    'tilt_puzzle' => "Games::LMSolve::Tilt::RedBlue",
 );
 
 if (!exists($variants_map{$variant}))
