@@ -357,8 +357,9 @@ sub add_form
     
     $ret .= <<'EOF';
 
-<form action="add.pl" method="POST">
+<form action="add.pl" method="post">
 
+<p>
 Area: 
 <select name="area">
 EOF
@@ -367,13 +368,12 @@ EOF
 
     foreach my $area (@{$config{'areas'}})
     {
-    	$ret .= ( "<option>" . $area . "\n");
+    	$ret .= ( "<option>" . $area . "</option>\n");
     }
 
     $ret .= <<'EOF';
 </select>
-<br>
-<br>
+</p>
 EOF
 
 
@@ -383,26 +383,27 @@ EOF
         {
             next;
         }
+        $ret .= "<p>";
     	$ret .= ( $field->{'pres'} .  ": ");
     	if ($field->{'sameline'})
     	{
-    		$ret .= ("<input name=\"" . $field->{'sql'} . "\">");
+    		$ret .= ("<input name=\"" . $field->{'sql'} . "\" />");
     	}
     	else
     	{
-    		$ret .= ( "<br>\n<textarea name=\"" . $field->{'sql'} . "\" rows=\"5\" cols=\"60\">\n");
+    		$ret .= ( "<br />\n<textarea name=\"" . $field->{'sql'} . "\" rows=\"5\" cols=\"60\">\n");
     		$ret .= "</textarea>";
     	}
-    	$ret .= "\n<br><br>\n";
+        $ret .= "</p>";
     }
 
 
 
     $ret .= <<'EOF';
-<br><br>
-<input type="SUBMIT" value="Submit">
+<p>
+<input type="submit" value="Submit" />
+</p>
 </form>
-<br><br><br><br>
 EOF
 	;
 	
