@@ -71,6 +71,17 @@ use POSIX;
             'sameline' => 1,
         },
     ],
+    'record_template' => <<EOF
+<div class="record">
+<p class="posted">
+Posted at <b>[% post_date %]</b>
+</p>
+<p class="data">
+<b>Workplace</b>: [% workplace %]<br />
+</p>
+</div>
+</div>
+EOF
 );
 
 1;

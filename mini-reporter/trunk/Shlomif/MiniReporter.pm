@@ -2,6 +2,7 @@ package Shlomif::MiniReporter;
 
 use strict;
 use DBI;
+use Template;
 
 sub initialize
 {
@@ -192,6 +193,95 @@ sub htmlize
 	return $string;
 }
 
+sub tt_render_record
+{
+    my $self = shift;
+
+    my $ret = "";
+    my %args = (@_);
+
+    my $config = $args{config};
+    my $values = $args{'values'};
+    my $fields = $args{'fields'};
+
+    # TODO: Make a persistent cross- object
+    my $tt = Template->new(
+        {
+            'BLOCKS' => 
+                {
+                    'main' => $config->{'record_template'},
+                },
+        },
+    );
+    
+    # TODO : This area thing is an ugly workaround 
+    my $vars = { map { $fields->[$_] => $values->[$_] } (1 .. $#$values)};
+    open O, ">>vars.dump.txt";
+    print O "\n\n[[[NEW Record]]]\n\n";
+    for (my ($k,$v) = each(%$vars))
+    {
+        print O "$k = $v\n";
+    }
+    close(O);
+        
+    $tt->process('main', $vars, \$ret);
+
+    return $ret;
+}
+
+sub render_record
+{
+    my $self = shift;
+
+    my $string = "";
+
+    # An ad-hoc hack to switch Template Toolkit on and off.
+    my $q = $self->{'cgi'};
+
+    if ($q->param("tt"))
+    {
+        $string .= $self->tt_render_record(@_);
+    }
+
+    my %args = (@_);
+
+    my %config = %{$args{'config'}};
+    my @values = @{$args{'values'}};
+    
+    $string .=
+    "<table border=1>\n" .
+    "<tr>\n" .
+    "<td>\n";
+    
+    for(my $a=0 ; $a<scalar(@{$config{'fields'}}) ; $a++)
+    {
+        $string .= "<b>" . $config{'fields'}->[$a]->{'pres'} .
+"</b>: ";
+    if (! $config{'fields'}->[$a]->{'sameline'})
+    {
+        $string .= "<br>\n";
+    }
+    
+    if ($config{'fields'}->[$a]->{'flags'} =~ /email/)
+    {
+        $string .= "<a href=\"mailto:". htmlize($values[$a+1]) . "\">" . htmlize($values[$a+1]) . "</a>";
+    }
+    else
+    {
+        $string .= htmlize($values[$a+1]);
+    }
+    
+    
+    $string .= "<br>\n";	
+    }
+    
+    $string .=  "</td>\n" .
+        "</tr>\n" .
+        "</table>\n";
+
+    return $string;
+}
+
 sub search_results
 {
     my $self = shift;
@@ -256,7 +346,10 @@ sub search_results
     {
     	push @field_names, $field->{'sql'};
     }
-    my $query_str = "SELECT " . join(",", "area", (map { $_->{'sql'} } @{$config{'fields'}})) .  
+
+    my @field_names = ("area", (map { $_->{'sql'} } @{$config{'fields'}}));
+
+    my $query_str = "SELECT " . join(", ", @field_names).  
                     " FROM " . $config{'table_name'} . 
     		" " . $where_clause_template . 
     		(" ORDER BY " . ($config{'order_by'} || "id DESC"));
@@ -276,44 +369,20 @@ sub search_results
 
     while (@values = $query->fetchrow_array())
     {
-    	$string = 
-    	"<table border=1>\n" .
-            "<tr>\n" .
-            "<td>\n";
-            
-            for(my $a=0 ; $a<scalar(@{$config{'fields'}}) ; $a++)
-            {
-            	$string .= "<b>" . $config{'fields'}->[$a]->{'pres'} .
-    "</b>: ";
-    		if (! $config{'fields'}->[$a]->{'sameline'})
-    		{
-    			$string .= "<br>\n";
-    		}
-    		
-    		if ($config{'fields'}->[$a]->{'flags'} =~ /email/)
-    		{
-    			$string .= "<a href=\"mailto:". htmlize($values[$a+1]) . "\">" . htmlize($values[$a+1]) . "</a>";
-    		}
-    		else
-    		{
-    			$string .= htmlize($values[$a+1]);
-    		}
-    		
-    		
-    		$string .= "<br>\n";	
-            }
-            
-            $string .=  "</td>\n" .
-            	"</tr>\n" .
-            	"</table>\n";
-            	
-            push @{$areas_jobs{$values[0]}}, $string;
+        my $string = 
+            $self->render_record(
+                'values' => \@values,
+                'config' => \%config,
+                'fields' => \@field_names,
+            );
+
+        push @{$areas_jobs{$values[0]}}, $string;
     }
 
     foreach my $area (@areas)
     {
     	$ret .= "<h2>" . $area . "</h2>\n\n";
-    	
+
     	$ret .= join("<br>\n<br>\n\n", @{$areas_jobs{$area}});
     }
 
