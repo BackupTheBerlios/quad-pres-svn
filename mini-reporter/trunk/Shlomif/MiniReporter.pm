@@ -390,14 +390,23 @@ sub get_form_fields
             type => ($f->{sameline} ? "text" : "textarea"),
             validators => 
             [ 
-                $f->{sameline} ? 
+                ($f->{sameline} ? 
                 (
                     WWW::FieldValidator->new(WWW::FieldValidator::REGEX_MATCH,
                     "No newlines allowed",
                     '^([^\n\r]*)$'
                     ), 
                 ): 
-                ()
+                ()),
+                ($f->{len} ?
+                (
+                    WWW::FieldValidator->new(
+                        WWW::FieldValidator::MAX_STR_LENGTH,
+                        "$f->{pres} is limited to $f->{len} characters",
+                        $f->{len}
+                    ),
+                ) :
+                ()),
             ],
             extraAttributes => 
                 ($f->{sameline} ? 
@@ -435,11 +444,12 @@ sub get_form_fields_sequence
 sub get_form
 {
     my $self = shift;
+    my $q = $self->{cgi};
 
     my $form = 
         WWW::Form->new(
             $self->get_form_fields(),
-            undef,
+            $q->{Vars},
             $self->get_form_fields_sequence(),
         );
 
@@ -527,10 +537,21 @@ sub add_post
     my $ret = "";
 
     my $form = $self->get_form();
+
+    $form->validate_fields();
     
-    if ($q->param('preview'))
+    my $valid_params = $form->is_valid();
+    if ($q->param('preview') || (! $valid_params))
     {
-        $ret .= linux_il_header($config{'strings'}->{'preview_result_title'}, "Preview the Added Record");
+        if ($valid_params)
+        {
+            $ret .= linux_il_header($config{'strings'}->{'preview_result_title'}, "Preview the Added Record");
+        }
+        else
+        {
+            $ret .= linux_il_header("Invalid Parameters Entered", 
+            "Invalid Paramterers Entered");
+        }
 
         $ret .= 
             $self->render_record(
@@ -548,11 +569,14 @@ sub add_post
                         submit_name => "preview",
                         submit_class => "preview",
                     },
-                    {
+                    ($valid_params ?
+                    ({
                         submit_label => "Submit",
                         action => './add.pl',
                         submit_name => "submit",
-                    },
+                    },) :
+                    (),
+                    )
                 ],
                 attributes => { 'class' => "myform" },
             ]

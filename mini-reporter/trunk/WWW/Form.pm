@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use CGI;
 
 our $VERSION = "1.12";
 
@@ -1197,15 +1198,18 @@ sub _getInputHTML {
     my $field = $self->getField($fieldName);
 
     my $inputHTML = "<input type='$field->{type}'"
-		. " name='$fieldName' id='$fieldName' value='";
+		. " name='$fieldName' id='$fieldName' value=\"";
 
+    my $value_to_put;
     if ($field->{type} eq 'checkbox') {
-        $inputHTML .= $field->{defaultValue};
+        $value_to_put = $field->{defaultValue};
     }
     else {
-        $inputHTML .= $field->{value};
+        $value_to_put = $field->{value};
     }
-    $inputHTML .= "'" . $attributesString  . " />";
+    $inputHTML .= $self->_escapeValue($value_to_put);
+    
+    $inputHTML .= "\"" . $attributesString  . " />";
 
     return $inputHTML;
 }
@@ -1310,6 +1314,13 @@ sub _getCheckBoxHTML {
     return $self->_getInputHTML($fieldName, $attributesString);
 }
 
+sub _escapeValue {
+    my $self = shift;
+    my $string = shift;
+
+    return CGI::escapeHTML($string);
+}
+
 # Returns a radio button group
 sub _getRadioButtonHTML {
     my $self             = shift;
@@ -1338,10 +1349,10 @@ sub _getRadioButtonHTML {
             }
 
 	    $inputHTML .= "<input type='$field->{type}'"
-	        . " name='$fieldName' value='";
+	        . " name='$fieldName'";
 
-	    $inputHTML .= "$value'"
-            . $attributesString
+        $inputHTML .= " value=\"". $self->_escapeValue($value) . "\" ";
+	    $inputHTML .= $attributesString
             . $isChecked
             . " /> $label</label><br />";
         }
@@ -1400,7 +1411,7 @@ sub _getSelectBoxHTML {
             else {
                 $isSelected = "";
             }
-            $html .= "<option value='$value'${isSelected}>$label</option>\n";
+            $html .= "<option value=\"" . $self->_escapeValue($value) . "\"${isSelected}>$label</option>\n";
         }
     }
     else {

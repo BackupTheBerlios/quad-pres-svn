@@ -49,7 +49,7 @@ use POSIX;
             "System Administrator"<br />
             "Embedded Linux Developer"<br />
             "Web Designer".<br />},
-            'len' => 120,
+            'len' => 40,
         },
         {
             qw(sql workplace pres Workplace sameline 1),
