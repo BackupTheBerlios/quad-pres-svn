@@ -1,14 +1,14 @@
-package Shlomif::LMSolver::Tilt::RedBlue;
+package Games::LMSolve::Tilt::RedBlue;
 
 use strict;
 
-use Shlomif::LMSolver::Tilt::Base;
+use Games::LMSolve::Tilt::Base;
 
-use Shlomif::LMSolver::Input;
+use Games::LMSolve::Input;
 
 use vars qw(@ISA);
 
-@ISA=qw(Shlomif::LMSolver::Tilt::Base);
+@ISA=qw(Games::LMSolve::Tilt::Base);
 
 sub input_board
 {
@@ -25,7 +25,7 @@ sub input_board
         'layout' => { 'type' => "layout", 'required' => 1},
     };
 
-    my $input_obj = Shlomif::LMSolver::Input->new();
+    my $input_obj = Games::LMSolve::Input->new();
 
     my $input_fields = $input_obj->input_board($filename, $spec);
 

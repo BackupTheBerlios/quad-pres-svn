@@ -1,12 +1,12 @@
-package Shlomif::LMSolver::Plank::Hex;
+package Games::LMSolve::Plank::Hex;
 
 use strict;
 
 use vars qw(@ISA);
 
-use Shlomif::LMSolver::Plank::Base;
+use Games::LMSolve::Plank::Base;
 
-@ISA=qw(Shlomif::LMSolver::Plank::Base);
+@ISA=qw(Games::LMSolve::Plank::Base);
 
 sub initialize
 {

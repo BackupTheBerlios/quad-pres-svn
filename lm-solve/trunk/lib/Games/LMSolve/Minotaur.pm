@@ -1,14 +1,14 @@
-package Shlomif::LMSolver::Minotaur;
+package Games::LMSolve::Minotaur;
 
 use strict;
 
-use Shlomif::LMSolver::Base;
+use Games::LMSolve::Base;
 
-use Shlomif::LMSolver::Input;
+use Games::LMSolve::Input;
 
 use vars qw(@ISA);
 
-@ISA=qw(Shlomif::LMSolver::Base);
+@ISA=qw(Games::LMSolve::Base);
 
 sub input_board
 {
@@ -21,7 +21,7 @@ sub input_board
         'layout' => { 'type' => "layout", 'required' => 1},
     };
 
-    my $input_obj = Shlomif::LMSolver::Input->new();
+    my $input_obj = Games::LMSolve::Input->new();
     my $input_fields = $input_obj->input_board($filename, $spec);
     
     my ($width, $height) = @{$input_fields->{'dims'}->{'value'}}{'x','y'};    

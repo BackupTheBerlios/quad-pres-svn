@@ -1,12 +1,12 @@
-package Shlomif::LMSolver::Alice;
+package Games::LMSolve::Alice;
 
 use strict;
 
-use Shlomif::LMSolver::Base qw(%cell_dirs);
+use Games::LMSolve::Base qw(%cell_dirs);
 
 use vars qw(@ISA);
 
-@ISA=qw(Shlomif::LMSolver::Base);
+@ISA=qw(Games::LMSolve::Base);
 
 
 my %cell_flags =
@@ -30,7 +30,7 @@ sub input_board
         'layout' => {'type' => "layout", 'required' => 1},
     };
 
-    my $input_obj = Shlomif::LMSolver::Input->new();
+    my $input_obj = Games::LMSolve::Input->new();
     my $input_fields = $input_obj->input_board($filename, $spec);
 
     my ($width, $height) = @{$input_fields->{'dims'}->{'value'}}{'x','y'};

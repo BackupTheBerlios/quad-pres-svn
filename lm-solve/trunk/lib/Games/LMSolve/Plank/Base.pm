@@ -1,14 +1,14 @@
-package Shlomif::LMSolver::Plank::Base;
+package Games::LMSolve::Plank::Base;
 
 use strict;
 
 use vars qw(@ISA);
 
-use Shlomif::LMSolver::Base qw(%cell_dirs);
+use Games::LMSolve::Base qw(%cell_dirs);
 
-@ISA=qw(Shlomif::LMSolver::Base);
+@ISA=qw(Games::LMSolve::Base);
 
-use Shlomif::LMSolver::Input;
+use Games::LMSolve::Input;
 
 sub initialize
 {
@@ -34,7 +34,7 @@ sub input_board
         'layout' => { 'type' => "layout", 'required' => 1,},        
     };
 
-    my $input_obj = Shlomif::LMSolver::Input->new();
+    my $input_obj = Games::LMSolve::Input->new();
 
     my $input_fields = $input_obj->input_board($filename, $spec);
     my ($width, $height) = @{$input_fields->{'dims'}->{'value'}}{'x','y'};

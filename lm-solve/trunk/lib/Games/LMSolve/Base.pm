@@ -1,4 +1,4 @@
-package Shlomif::LMSolver::Base;
+package Games::LMSolve::Base;
 
 use strict;
 

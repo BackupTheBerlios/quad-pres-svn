@@ -1,4 +1,4 @@
-package Shlomif::LMSolver::Input;
+package Games::LMSolve::Input;
 
 use strict;
 

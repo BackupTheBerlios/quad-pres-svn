@@ -1,12 +1,12 @@
-package Shlomif::LMSolver::Numbers;
+package Games::LMSolve::Numbers;
 
 use strict;
 
-use Shlomif::LMSolver::Base;
+use Games::LMSolve::Base;
 
 use vars qw(@ISA);
 
-@ISA=qw(Shlomif::LMSolver::Base);
+@ISA=qw(Games::LMSolve::Base);
 
 my %cell_dirs = 
     (
@@ -29,7 +29,7 @@ sub input_board
         'layout' => {'type' => "layout", 'required' => 1},
     };
 
-    my $input_obj = Shlomif::LMSolver::Input->new();
+    my $input_obj = Games::LMSolve::Input->new();
     my $input_fields = $input_obj->input_board($filename, $spec); 
     my ($width, $height) = @{$input_fields->{'dims'}->{'value'}}{'x','y'};
     my ($start_x, $start_y) = @{$input_fields->{'start'}->{'value'}}{'x','y'};

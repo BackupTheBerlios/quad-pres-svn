@@ -1,12 +1,12 @@
-package Shlomif::LMSolver::Tilt::Base;
+package Games::LMSolve::Tilt::Base;
 
 use strict;
 
 use vars qw(@ISA);
 
-use Shlomif::LMSolver::Base;
+use Games::LMSolve::Base;
 
-@ISA=qw(Shlomif::LMSolver::Base);
+@ISA=qw(Games::LMSolve::Base);
 
 # x - the x step
 # y - the y step
