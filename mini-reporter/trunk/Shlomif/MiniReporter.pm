@@ -583,7 +583,7 @@ sub get_form_html
     return $ret;
 }
 
-sub add_form
+sub add_form_old
 {
     my $self = shift;
 
@@ -591,7 +591,7 @@ sub add_form
 
     my $config = $self->{config};
 
-    $ret .= $self->linux_il_header("Add a job to the Linux-IL jobs' list", "Add a job");
+    
     
     my $form = $self->get_form();
 
@@ -611,7 +611,7 @@ sub add_form
     return $ret;
 }
 
-sub add_post
+sub add_form
 {
     my $self = shift;
 
@@ -620,8 +620,6 @@ sub add_post
     # return join("\n<br />\n", (map { "$_ = " . $q->param($_) } $q->param()));
     
     my $config = $self->{config};
-
-    my $conn = DBI->connect($config->{'dsn'});
 
     my $id = 0;
 
@@ -651,9 +649,16 @@ sub add_post
     $form->validate_fields();
     
     my $valid_params = $form->is_valid();
-    if ($q->param('preview') || (! $valid_params))
+
+    my $no_cgi_params = (scalar($q->param()) == 0);
+
+    if ($q->param('preview') || (! $valid_params) || $no_cgi_params)
     {
-        if ($valid_params)
+        if ($no_cgi_params)
+        {
+            $ret .= $self->linux_il_header("Add a job to the Linux-IL jobs' list", "Add a job");
+        }
+        elsif ($valid_params)
         {
             $ret .= $self->linux_il_header($config->{'strings'}->{'preview_result_title'}, "Preview the Added Record");
         }
@@ -663,11 +668,14 @@ sub add_post
             "Invalid Paramterers Entered");
         }
 
-        $ret .= 
-            $self->render_record(
-                'fields' => \@field_names,
-                'values' => \@values,
-            );
+        if (! $no_cgi_params)
+        {
+            $ret .= 
+                $self->render_record(
+                    'fields' => \@field_names,
+                    'values' => \@values,
+                );
+        }
 
         $ret .= $self->get_form_html($form,
             [
@@ -679,7 +687,7 @@ sub add_post
                         submit_name => "preview",
                         submit_class => "preview",
                     },
-                    ($valid_params ?
+                    (($valid_params && ! $no_cgi_params)?
                     ({
                         submit_label => "Submit",
                         action => './add.pl',
@@ -689,6 +697,7 @@ sub add_post
                     )
                 ],
                 attributes => { 'class' => "myform" },
+                hint_tr_class => "space",
             ]
          );
     }
@@ -696,6 +705,7 @@ sub add_post
     {
         $ret .= $self->linux_il_header($config->{'strings'}->{'add_result_title'}, "Success");
 
+        my $conn = DBI->connect($config->{'dsn'});
         my $query_str = "INSERT INTO " . $config->{'table_name'} . 
             " (" . join(",", "id", "status", "area", @field_names) . ") " .
             " VALUES ($id, 1, '" . $q->param("area") . "'," .  join(",", (map { $conn->quote($_); } @values)) . ")";
