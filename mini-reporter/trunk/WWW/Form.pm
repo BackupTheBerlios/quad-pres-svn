@@ -1190,6 +1190,16 @@ sub _getInputHTML {
 sub _getSubmitButtonHTML {
     my ($class, %args) = @_;
 
+    if (exists($args{buttons}))
+    {
+        my $ret;
+        foreach my $button (@{$args{buttons}})
+        {
+            $ret .= $class->_getSubmitButtonHTML(%$button);
+        }
+        return $ret;
+    }
+
     my $type = $args{submit_type} || 'submit';
 
     # Optional param that specifies an image for the submit button, this

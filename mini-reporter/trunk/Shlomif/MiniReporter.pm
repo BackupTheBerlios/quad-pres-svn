@@ -437,6 +437,7 @@ sub add_form
          submit_label => "Preview", 
          action => './add.pl',
          submit_name => "preview",
+         submit_class => "preview",
      );
 
      $ret .= linux_il_footer();
@@ -445,26 +446,16 @@ sub add_form
 sub add_post
 {
     my $self = shift;
+
+    my $q = $self->{'cgi'};
+
+    return join("\n<br />\n", (map { "$_ = " . $q->param($_) } $q->param()));
     
     my %config = %{$self->{'config'}};
 
     my $conn = DBI->connect($config{'dsn'});
-    
-    my $q = $self->{'cgi'};
 
-    # Retrieve the ID for the new record
-
-    my $id_query_str = "SELECT max(id) FROM " . $config{'table_name'};
-
-    my $id_query = $conn->prepare($id_query_str);
-
-    $id_query->execute();
-
-    my $id = $id_query->fetchrow_array();
-
-    $id_query->finish();
-
-    $id++;
+    my $id = 0;
 
     # Prepare the insert statement
 
@@ -485,25 +476,55 @@ sub add_post
         push @values, $v;
     }
 
-    my $query_str = "INSERT INTO " . $config{'table_name'} . 
-    	" (" . join(",", "id", "status", "area", @field_names) . ") " .
-        " VALUES (" . $id . ", 1, '" . $q->param("area") . "'," .  join(",", (map { $conn->quote($_); } @values)) . ")";
-
-    $conn->do($query_str);
-
-    $conn->disconnect();
-
     my $ret = "";
-    
+        
     $ret .= linux_il_header($config{'strings'}->{'add_result_title'}, "Success");
-    $ret .= <<'EOF';
+    
 
+    if ($q->param('Preview'))
+    {
+        my $form = 
+            WWW::Form->new(
+                $self->get_form_fields(),
+                undef,
+                $self->get_form_fields_sequence(),
+            );
+
+        $ret .= $form->get_form_HTML(
+            'buttons' =>
+            [
+                {
+                    submit_label => "Preview", 
+                    action => './add.pl',
+                    submit_name => "preview",
+                    submit_class => "preview",
+                },
+                {
+                    submit_label => "Submit",
+                    action => './add.pl',
+                    submit_name => "submit",
+                },
+            ],
+         );
+    }
+    else
+    {
+        my $query_str = "INSERT INTO " . $config{'table_name'} . 
+            " (" . join(",", "id", "status", "area", @field_names) . ") " .
+            " VALUES ($id, 1, '" . $q->param("area") . "'," .  join(",", (map { $conn->quote($_); } @values)) . ")";
+
+        $conn->do($query_str);
+
+        $conn->disconnect();
+
+        $ret .= <<'EOF';
 The job was added to the database.<br>
 <br>
 EOF
-	;
-    
-    $ret .= "<a href=\"main.pl\">" . $config{'strings'}->{'add_back_link_text'} . "</a>\n";
+        ;
+        
+        $ret .= "<a href=\"main.pl\">" . $config{'strings'}->{'add_back_link_text'} . "</a>\n";
+    }   
 
     $ret .= linux_il_footer();
 
