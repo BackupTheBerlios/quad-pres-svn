@@ -8,8 +8,8 @@ chomp($version);
 close(VER);
 
 WriteMakefile(
-    'NAME' => 'Shlomif::LMSolver',
-    'DISTNAME' => 'LM-Solve',
+    'NAME' => 'Games::LMSolve',
+    'DISTNAME' => 'Games-LMSolve',
     'EXE_FILES' => ["lm-solve"],
     'VERSION' => $version,
     );
