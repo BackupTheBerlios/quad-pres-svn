@@ -35,21 +35,27 @@ sub gen_Q
 
 sub gen_u
 {
-    my $curve_len = $u_arc_height * 2;
+    my @init_off = @{$path->get_coords()};
+    $path->move_rel(0, $large_letter_height-$letter_height);
     $path->line_down($u_pipes_height);
-    $path->bezier_rel(0,$curve_len,$u_width,$curve_len,$u_width,0);
+    my @curve_off = ($u_width/2,$u_arc_height);
+    # $path->bezier_rel(0,$curve_len,$u_width,$curve_len,$u_width,0);
+    $path->bezier_rel(0,$curve_off[1],$u_width/2-$curve_off[0], $u_arc_height,$u_width/2, $u_arc_height);
+    $path->bezier_rel($curve_off[0], 0, $u_width/2, -($u_arc_height-$curve_off[1]),$u_width/2,-$u_arc_height);
     $path->line_up($u_pipes_height);
+    my @last_off = @{$path->get_coords()};
+    $path->move_rel(int($letter_height / 2) , $init_off[1]-$last_off[1]);
 }
 
 sub gen_path
 {
-    $path->move_rel(10,10);
+    $path->move_rel(100,10);
     gen_Q();
     gen_u();
     return join("", map { "$_ " } @{$path->get_commands()});
 }
 
-my $svg = SVG->new(width => 1024, height => 256);
+my $svg = SVG->new(width => 1024, height => 256, style=> "fill : white",);
 
 my $svg_path = 
     $svg->path(
