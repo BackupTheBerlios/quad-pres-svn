@@ -10,12 +10,6 @@ use Cwd;
 
 Gimp::init();
 
-my $letter_height = 100 ;
-
-my $u_arc_height = int($letter_height/5);
-
-my $u_pipes_height = $letter_height - $u_arc_height;
-
 my $image = gimp_image_new(1024, 256, RGB);
 
 my $layer = 
