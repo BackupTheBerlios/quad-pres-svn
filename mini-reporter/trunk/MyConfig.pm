@@ -21,12 +21,12 @@ use POSIX;
         'add_a_record_text' => "Add a job to the database",
     },
     'dsn' => 'dbi:mysql:test_jobs',
-    'table_name' => 'jobs',
+    'table_name' => 'jobs2',
     'areas' => [ "Tel Aviv", "Haifa", "Jerusalem", "North", "South" ],
     'fields' =>
     [
         {
-            'sql' => "PostDate",
+            'sql' => "post_date",
             'pres' => "Post Date",
             'sameline' => 1,
             'gen' => 
@@ -48,10 +48,15 @@ use POSIX;
             qw(sql requirements pres Requirements sameline 0)
         },
         {
-            qw(sql address pres Address sameline 1)
+            qw(sql address pres Address sameline 0)
         },
         {
             qw(sql phone pres Phone sameline 1)
+        },
+        {
+            'sql' => "cellphone",
+            'pres' => "Cell Phone",
+            'sameline' => 1,
         },
         {
             qw(sql fax pres Fax sameline 1)
