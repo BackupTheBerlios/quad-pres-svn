@@ -69,7 +69,7 @@ use POSIX;
             'sql' => 'contact_person',
             'pres' => 'Contact Person',
             'sameline' => 1,
-        },        
+        },
     ],
 );
 

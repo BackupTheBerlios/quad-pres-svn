@@ -34,7 +34,7 @@ sub linux_il_header
 	
 	if ($title)
 	{
-		$title1 = "<head>\n<title>" . $title . "</title>\n</head>\n";
+		$title1 = "<title>" . $title . "</title>\n";
 	}
 	else
 	{	
@@ -51,9 +51,16 @@ sub linux_il_header
 	}
 
 	$ret .= <<"EOF"
-<html>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<head>
 $title1
-<body bgcolor="#FFFFFF">
+<link rel="stylesheet" href="./style.css" type="text/css" />
+</head>
+<body>
 <a href="/"><img SRC="/images/IGLU-banner.jpg" LENGTH=499 HEIGHT=86 ALT="IGLU -
 Israeli Group of Linux Users" BORDER=0 ></a>
 <p>[<a href="/">Home</a> |
