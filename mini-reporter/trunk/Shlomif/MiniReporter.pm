@@ -54,6 +54,7 @@ sub setup
     $self->initialize($MyConfig::config);
 
     $self->start_mode("main");
+    $self->mode_param(\&determine_mode);
 
     $self->run_modes(
         (map { $_ => $modes{$_}->{'func'}, } keys(%modes)),
@@ -111,16 +112,15 @@ sub get_path
     return $path;
 }
 
-sub cgiapp_prerun
+sub determine_mode
 {
     my $self = shift;
-
+    
     my $path = $self->get_path();
 
     if ($path =~ /\/\/$/)
     {
-        $self->prerun_mode("correct_path");
-        return;
+        return "correct_path";
     }
 
     my $mode = $urls_to_modes{$path};
@@ -130,13 +130,14 @@ sub cgiapp_prerun
         my $slash_mode = $urls_to_modes{"$path/"};
         if (defined($slash_mode))
         {
-            $self->prerun_mode("correct_path");
-            return;
+            return "correct_path";
         }
-        $self->prerun_mode("redirect_to_main");
+        return "redirect_to_main";
     }
-
-    $self->prerun_mode($mode);
+    else
+    {
+        return $mode;
+    }
 }
 
 sub initialize
@@ -742,7 +743,7 @@ sub add_form
         else
         {
             $ret .= $self->linux_il_header("Invalid Parameters Entered", 
-            "Invalid Paramterers Entered");
+            "Invalid Parameters Entered");
         }
 
         if (! $no_cgi_params)
@@ -756,18 +757,17 @@ sub add_form
 
         $ret .= $self->get_form_html($form,
             [
+                'action' => "",
                 'buttons' =>
                 [
                     {
                         submit_label => "Preview", 
-                        action => './add.pl',
                         submit_name => "preview",
                         submit_class => "preview",
                     },
                     (($valid_params && ! $no_cgi_params)?
                     ({
                         submit_label => "Submit",
-                        action => './add.pl',
                         submit_name => "submit",
                     },) :
                     (),

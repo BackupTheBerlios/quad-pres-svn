@@ -6,6 +6,10 @@ upload_to="${upload_to_base}new/"
 if [ "$arg" = "--stable" ] ; then
     upload_to="$upload_to_base"
 fi
+cat App-debug.pl | sed -e '/^#!\/usr\/bin\/perl/ { s!-w!! }' > App.pl
+chmod 755 App.pl
 rsync -v --progress --rsh=ssh --relative \
-    *.pl MyConfig.pm style.css Shlomif/MiniReporter.pm \
+    App.pl invalidate-records.pl populate-new-table.pl \
+    MyConfig.pm style.css Shlomif/MiniReporter.pm \
     "$upload_to"
+
