@@ -11,7 +11,7 @@ use MyConfig;
 
 my $q = new CGI;
 
-my $r = Shlomif::MiniReporter->new(\%config, $q);
+my $r = Shlomif::MiniReporter->new($config, $q);
 
 print $q->header();
 

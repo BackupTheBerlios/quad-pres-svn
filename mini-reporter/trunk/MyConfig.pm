@@ -1,17 +1,11 @@
 package MyConfig;
 
-use Exporter;
-
-use vars qw(%config @EXPORT @ISA);
-
-@EXPORT=qw(%config);
-
-@ISA = qw(Exporter);
+use vars qw($config);
 
 use POSIX;
 
-%config = 
-(
+$config = 
+{
     'strings' => 
     {
         'main_title' => "Linux-IL Jobs Tracker",
@@ -160,6 +154,6 @@ Posted at <b>[% post_date %]</b>
 </p>
 </div>
 EOF
-);
+};
 
 1;

@@ -3,9 +3,113 @@ package Shlomif::MiniReporter;
 use strict;
 use DBI;
 use Template;
+# Inherit from CGI::Application.
+use base 'CGI::Application';
+use MyConfig;
+
 use WWW::Form;
 
 use WWW::FieldValidator;
+
+my %modes = 
+(
+    'main' => 
+    {
+        'url' => "/",
+        'func' => "main_page",
+    },
+    'add' =>
+    {
+        'url' => "add/",
+        'func' => "add_form",
+    },
+    'search' =>
+    {
+        'url' => "search/",
+        'func' => "search",
+    },
+    'css' =>
+    {
+        'url' => "style.css",
+        'func' => "css_stylesheet",
+    },
+);
+
+my %urls_to_modes = (map { $modes{$_}->{'url'} => $_ } keys(%modes));
+
+sub setup
+{
+    my $self = shift;
+
+    $self->initialize($MyConfig::config);
+
+    $self->start_mode("main");
+
+    $self->run_modes(
+        (map { $_ => $modes{$_}->{'func'}, } keys(%modes)),
+        # Remmed out:
+        # I think of deprecating it because there's not much difference
+        # between it and add.
+        # "add_form" => "add_form",
+        'redirect_to_main' => "redirect_to_main",
+        'correct_path' => "correct_path",
+    );
+}
+
+sub redirect_to_main
+{
+
+}
+
+sub correct_path
+{
+    my $self = shift;
+
+    my $path = $self->get_path();
+
+    $path =~ m#([^/]+)/*$#;
+
+    my $last_component = $1;
+    $self->header_type('redirect');
+    $self->header_props(-url => "./$last_component/");
+}
+
+sub get_path
+{
+    my $path = $ENV{'PATH_INFO'} || "";
+
+    $path =~ s/^\///;
+
+    return $path;
+}
+
+sub cgiapp_prerun
+{
+    my $self = shift;
+
+    my $path = $self->get_path();
+
+    if ($path =~ /\/\/$/)
+    {
+        $self->prerun_mode("correct_path");
+        return;
+    }
+
+    my $mode = $urls_to_modes{$path};
+
+    if (!defined($mode))
+    {
+        my $slash_mode = $urls_to_modes{"$path/"};
+        if (defined($slash_mode))
+        {
+            $self->prerun_mode("correct_path");
+            return;
+        }
+        $self->prerun_mode("redirect_to_main");
+    }
+
+    $self->prerun_mode($mode);
+}
 
 sub initialize
 {
@@ -13,7 +117,6 @@ sub initialize
 	
     my $config = shift;
 	$self->{'config'} = $config; 
-	$self->{'cgi'} = shift;
 
     my $tt = Template->new(
         {
@@ -36,22 +139,12 @@ sub get_record_template_gen
     return $self->{record_tt};
 }
 
-sub new 
-{
-	my $class = shift;
-	my $self = {};
-	
-	bless($self, $class);
-	
-	$self->initialize(@_);
-	
-	return $self;	
-}
-
 sub linux_il_header
 {
+    my $self = shift;
 	my $title = shift;
 	my $header = shift;
+    my $path = $self->get_path();
 	
 	my ($ret, $title1, $title2);
 	
@@ -73,6 +166,10 @@ sub linux_il_header
 		$title2 = "";
 	}
 
+    my @css_path_components = (map { "../" } split(/\//, $path));
+
+    my $css_path = join("", @css_path_components);
+
 	$ret .= <<"EOF"
 <!DOCTYPE html
     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -81,7 +178,7 @@ sub linux_il_header
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
 <head>
 $title1
-<link rel="stylesheet" href="./style.css" type="text/css" />
+<link rel="stylesheet" href="./${css_path}style.css" type="text/css" />
 </head>
 <body>
 <p>
@@ -144,7 +241,7 @@ sub main_page
     
     my $title = $config->{'strings'}->{'main_title'};
     
-    $ret .= linux_il_header($title, $title);
+    $ret .= $self->linux_il_header($title, $title);
     
     $ret .= <<'EOF'
 <h3>Search the Database</h3>
@@ -176,8 +273,8 @@ Keyword from description: <input name="keyword" />
 EOF
 	;
 
-    $ret .= "<p><a href=\"search.pl?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br />\n";
-    $ret .= "<a href=\"add_form.pl\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></p>";
+    $ret .= "<p><a href=\"search?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br />\n";
+    $ret .= "<a href=\"./add/\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></p>";
 
     $ret .= linux_il_footer();
 
@@ -251,13 +348,13 @@ sub search_results
 {
     my $self = shift;
 
-    my %config = %{$self->{'config'}};
+    my $config = $self->{'config'};
     
-    my $conn = DBI->connect($config{'dsn'});
+    my $conn = DBI->connect($config->{'dsn'});
 
-    my $q = $self->{'cgi'};
+    my $q = $self->query();
 
-    my @area_list = @{$config{'areas'}};
+    my @area_list = @{$config->{'areas'}};
     
     my $ret = "";
 
@@ -285,7 +382,7 @@ sub search_results
 
     		my (@search_clauses);
 
-    		foreach my $field (@{$config{'fields'}})
+    		foreach my $field (@{$config->{'fields'}})
     		{
     			push @search_clauses, "(" . $field->{'sql'} . " LIKE '%" . $keyword
     			. "%')";
@@ -307,15 +404,15 @@ sub search_results
     }
 
 
-    $ret .= linux_il_header("Search Results", "Search Results");
+    $ret .= $self->linux_il_header("Search Results", "Search Results");
 
     my $field_names = $self->get_field_names();
 
     my (@values);
     my $query_str = "SELECT " . join(", ", @$field_names).  
-                    " FROM " . $config{'table_name'} . 
+                    " FROM " . $config->{'table_name'} . 
     		" " . $where_clause_template . 
-    		(" ORDER BY " . ($config{'order_by'} || "id DESC"));
+    		(" ORDER BY " . ($config->{'order_by'} || "id DESC"));
 
     my $query = $conn->prepare($query_str);
 
@@ -360,7 +457,7 @@ sub get_form_fields
 {
     my $self = shift;
 
-    my $q = $self->{cgi};
+    my $q = $self->query();
 
     my $config = $self->{config};
 
@@ -456,7 +553,7 @@ sub get_form_fields_sequence
 sub get_form
 {
     my $self = shift;
-    my $q = $self->{cgi};
+    my $q = $self->query();
 
     my $form = 
         WWW::Form->new(
@@ -492,9 +589,9 @@ sub add_form
 
     my $ret = "";
 
-    my %config = %{$self->{'config'}};
+    my $config = $self->{config};
 
-    $ret .= linux_il_header("Add a job to the Linux-IL jobs' list", "Add a job");
+    $ret .= $self->linux_il_header("Add a job to the Linux-IL jobs' list", "Add a job");
     
     my $form = $self->get_form();
 
@@ -518,13 +615,13 @@ sub add_post
 {
     my $self = shift;
 
-    my $q = $self->{'cgi'};
+    my $q = $self->query();
 
     # return join("\n<br />\n", (map { "$_ = " . $q->param($_) } $q->param()));
     
-    my %config = %{$self->{'config'}};
+    my $config = $self->{config};
 
-    my $conn = DBI->connect($config{'dsn'});
+    my $conn = DBI->connect($config->{'dsn'});
 
     my $id = 0;
 
@@ -532,7 +629,7 @@ sub add_post
 
     my (@values, @field_names);
 
-    foreach my $a (@{$config{'fields'}})
+    foreach my $a (@{$config->{'fields'}})
     {
     	push @field_names, $a->{'sql'};
         my $v;
@@ -558,11 +655,11 @@ sub add_post
     {
         if ($valid_params)
         {
-            $ret .= linux_il_header($config{'strings'}->{'preview_result_title'}, "Preview the Added Record");
+            $ret .= $self->linux_il_header($config->{'strings'}->{'preview_result_title'}, "Preview the Added Record");
         }
         else
         {
-            $ret .= linux_il_header("Invalid Parameters Entered", 
+            $ret .= $self->linux_il_header("Invalid Parameters Entered", 
             "Invalid Paramterers Entered");
         }
 
@@ -597,9 +694,9 @@ sub add_post
     }
     else
     {
-        $ret .= linux_il_header($config{'strings'}->{'add_result_title'}, "Success");
+        $ret .= $self->linux_il_header($config->{'strings'}->{'add_result_title'}, "Success");
 
-        my $query_str = "INSERT INTO " . $config{'table_name'} . 
+        my $query_str = "INSERT INTO " . $config->{'table_name'} . 
             " (" . join(",", "id", "status", "area", @field_names) . ") " .
             " VALUES ($id, 1, '" . $q->param("area") . "'," .  join(",", (map { $conn->quote($_); } @values)) . ")";
 
@@ -613,11 +710,25 @@ The job was added to the database.<br>
 EOF
         ;
         
-        $ret .= "<a href=\"main.pl\">" . $config{'strings'}->{'add_back_link_text'} . "</a>\n";
+        $ret .= "<a href=\"main.pl\">" . $config->{'strings'}->{'add_back_link_text'} . "</a>\n";
     }   
 
     $ret .= linux_il_footer();
 
     return $ret;
 }
+
+sub css_stylesheet
+{
+    my $self = shift;
+
+    local (*I);
+    open I, "<style.css";
+    $self->header_props(-type => "text/css");
+    my $output = join("", <I>);
+    close(I);
+    
+    return $output;
+}
+
 1;

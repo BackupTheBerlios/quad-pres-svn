@@ -1,8 +1,11 @@
 Pressing:
 ---------
 
-* Highlight each two rows in a different colour + define a small spacing 
-between each two rows.
+* Convert to CGI::Application. (and HTML::Template ?)
+
+* Convert to Tangram.
+
+* Find a way to do a spacing.
 
 Long-term:
 ----------
@@ -10,23 +13,16 @@ Long-term:
 * Find a way to restrict the width of the table to the width of the 
 input cells.
 
-* Convert %config to a scalar and apply it for the entire code. (it's
-faster and cleaner)
-
 * Add a job add management : password + E-mail to remove it or renew
 it after it expires.
 
 * Research Hebrew Integration.
-
-* Convert to CGI::Application. (and HTML::Template ?)
 
 * Create an administration page.
 
 * Fix the Broken Records.
 
 * Put on CPAN.
-
-* Convert to Tangram.
 
 * Write a search form for another search on the search results page.
 
