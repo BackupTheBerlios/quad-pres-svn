@@ -60,32 +60,65 @@ use POSIX;
             (You can write Confidential.)},
         },
         {
-            qw(sql description pres Description sameline 0)
+            sql => 'description',
+            pres => "Description",
+            sameline => 0,
+            hint => qq{
+                Describe the job in detail. What it involves, <br/>
+                what will the employee do, etc.
+            },
         },
         {
-            qw(sql requirements pres Requirements sameline 0)
+            qw(sql requirements pres Requirements sameline 0),
+            hint => qq{
+                Requirements that the nominee would have to fullfill to<br />
+                get the the Job. Examples: "2 years of experience<br />
+                in SQL", "A Computer Science or similar B.Sc.",<br />
+                "A driver's license", "Teamwork"<br />
+            },
         },
         {
-            qw(sql address pres Address sameline 0)
+            qw(sql address pres Address sameline 0),
+            hint => qq{
+                The address of the company (in the real world). <br />
+                Street,City, Zip-code. Optional
+            },
         },
         {
-            qw(sql phone pres Phone sameline 1)
+            qw(sql phone pres Phone sameline 1),
+            hint => qq{ 
+                The telephone number in which you can be reached.
+            },
         },
         {
             'sql' => "cellphone",
             'pres' => "Cell Phone",
             'sameline' => 1,
+            hint => qq{
+                Cellular (mobile) Phone number in which you can be
+                reached.
+            },
         },
         {
-            qw(sql fax pres Fax sameline 1)
+            qw(sql fax pres Fax sameline 1),
+            hint => qq{
+                Fax number where resumes can be sent.
+            },
         },
         {    
-            qw(sql email pres E-mail sameline 1 flags email)
+            qw(sql email pres E-mail sameline 1 flags email),
+            hint => qq{
+                E-mail address where you or the company can be contacted at.
+            },
         },
         {
             'sql' => 'contact_person',
             'pres' => 'Contact Person',
             'sameline' => 1,
+            hint => qq{
+                Name of the contact person in the company which the <br />
+                nomineee should contact.
+            },
         },
     ],
     'record_template' => <<EOF

@@ -1,19 +1,13 @@
-* Make sure the output stay validated as XHTML 1.0 Strict. (and validate)
+* Find a way to restrict the width of the table to the width of the 
+input cells.
 
-* Validate the input of the form to display the correct record and to warn
-on errors.
-
-* Add some hints on what to put in the fields.
-
-* Verify that there are no XSS exploits.
-
-* Make sure newlines work as they should in some places and don't work 
-(as they should) in others.
-
-* Convert to CGI::Application. (and HTML::Template ?)
+* Add constraints on the input fields as a precaution to make sure the
+preview looks well.
 
 Long-term:
 ----------
+
+* Convert to CGI::Application. (and HTML::Template ?)
 
 * Create an administration page.
 
