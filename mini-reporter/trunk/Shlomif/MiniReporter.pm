@@ -33,6 +33,11 @@ my %modes =
         'url' => "/style.css",
         'func' => "css_stylesheet",
     },
+    'admin' =>
+    {
+        'url' => "/admin/",
+        'func' => "admin_screen",
+    },
 );
 
 my %urls_to_modes = (map { $modes{$_}->{'url'} => $_ } keys(%modes));
@@ -228,7 +233,7 @@ sub linux_il_footer
     
     $ret .= <<'EOF';
 <hr />
-<div style = "font-size : smaller">
+<div class="footer">
 <p>For more info or
 for website remarks mail the 
 <a href="mailto:webmaster@iglu.org.il"><em>webmasters</em></a>.
@@ -357,20 +362,40 @@ sub get_field_names
 
     my $config = $self->{config};
     
-    my @field_names = ("area", (map { $_->{'sql'} } @{$config->{'fields'}}));
+    my @field_names = ("area", "id", (map { $_->{'sql'} } @{$config->{'fields'}}));
 
     return \@field_names;
 }
 
-sub search_results
+=head2 $self->display_records(%args)
+
+Accepts the following optional parameters:
+
+    all_records - if set, display all records (by default only active ones)
+    keyword - a keyword to search for.
+    area_choice - an area to choose for (or All for all areas)
+    toolbox - display the toolbox of admining a record (defaults to 0)
+    show_disabled - show disabled records as well.
+    show_enabled - show enabled records as well.
+=cut
+
+sub display_records
 {
     my $self = shift;
+
+    my %args = (@_);
+
+    my $all_param = $args{'all_records'} || "";
+
+    my $keyword_param = $args{'keyword'} || "";
+
+    my $area_param = $args{'area_choice'} || "";
+
+    my $display_toolbox = $args{'toolbox'} || 0;
 
     my $config = $self->{'config'};
     
     my $conn = DBI->connect($config->{'dsn'});
-
-    my $q = $self->query();
 
     my @area_list = @{$config->{'areas'}};
     
@@ -378,48 +403,41 @@ sub search_results
 
     my ($where_clause_template, @areas);
 
-    my $all_param = $q->param("all") || "";
-
     my %does_area_exists_map = (map { $_ => 1} @area_list);
 
     if ($all_param eq "1")
     {
-    	$where_clause_template = "WHERE status=1";	
+    	$where_clause_template = "WHERE status=1";
     	
     	@areas = @area_list;
     }
     else
     {
-        my $keyword_param = $q->param("keyword") || "";
     	if ($keyword_param =~ /^\s*$/) {
     		$where_clause_template = "WHERE status=1";
     	}
     	else
     	{
-    		my $keyword = $q->param("keyword");
-    		
-    		$keyword =~ s/'/ /g;
+    		$keyword_param =~ s/'/ /g;
 
     		my (@search_clauses);
 
     		foreach my $field (@{$config->{'fields'}})
     		{
-    			push @search_clauses, "(" . $field->{'sql'} . " LIKE '%" . $keyword
+    			push @search_clauses, "(" . $field->{'sql'} . " LIKE '%" . $keyword_param
     			. "%')";
     		}
 
     		$where_clause_template = "WHERE status=1 AND (" . join(" OR ", @search_clauses) . ")";
     	}
 
-        my $area_param = $q->param("area") || "";
-    	
     	if ($area_param eq 'All')
     	{
     		@areas = @area_list;
     	}
     	else
     	{
-    		@areas = $q->param("area");
+    		@areas = $area_param;
     	}
     }
 
@@ -428,15 +446,16 @@ sub search_results
 
     my $field_names = $self->get_field_names();
 
-    my (@values);
+    push @$field_names, ('status');
+
     my $query_str = "SELECT " . join(", ", @$field_names).  
                     " FROM " . $config->{'table_name'} . 
     		" " . $where_clause_template . 
     		(" ORDER BY " . ($config->{'order_by'} || "id DESC"));
 
-    my $query = $conn->prepare($query_str);
+    my $sth = $conn->prepare($query_str);
 
-    $query->execute();
+    $sth->execute();
 
     my (%areas_jobs);
 
@@ -447,15 +466,24 @@ sub search_results
 
     my ($string);
 
-    while (@values = $query->fetchrow_array())
+    my $field_names_with_usability_additions = [ @$field_names ];
+
+    if ($display_toolbox)
+    {
+        push @$field_names_with_usability_additions, 'toolbox';
+    }
+
+    my $values;
+
+    while ($values = $sth->fetchrow_arrayref())
     {
         my $string = 
             $self->render_record(
-                'values' => \@values,
-                'fields' => $field_names,
+                'values' => ($display_toolbox ? [@$values, 1] : \@$values),
+                'fields' => $field_names_with_usability_additions,
             );
 
-        push @{$areas_jobs{$values[0]}}, $string;
+        push @{$areas_jobs{$values->[0]}}, $string;
     }
 
     AREA_LOOP: foreach my $area (@areas)
@@ -476,7 +504,25 @@ sub search_results
     $conn->disconnect();
 
     return $ret;
+}
 
+sub search_results
+{
+    my $self = shift;
+
+    my $q = $self->query();
+
+    my $all_param = $q->param("all") || "";
+
+    my $keyword_param = $q->param("keyword") || "";
+
+    my $area_param = $q->param("area") || "";
+
+    return $self->display_records(
+        'all_records' => $all_param,
+        'keyword' => $keyword_param,
+        'area_choice' => $area_param,
+    );
 }
 
 sub get_form_fields
@@ -751,4 +797,16 @@ sub css_stylesheet
     return $output;
 }
 
+sub admin_screen
+{
+    my $self = shift;
+
+    return $self->display_records(
+       'all_records' => 1,
+       'toolbox' => 1,
+    );
+}
+
 1;
+
+

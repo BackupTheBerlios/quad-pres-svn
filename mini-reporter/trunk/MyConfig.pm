@@ -126,7 +126,7 @@ $config =
         },
     ],
     'record_template' => <<EOF
-<div class="record">
+<div class="record[% IF toolbox %] recadmin[% END %]">
 <h3>[% title %]</h3>
 <p class="posted">
 Posted at <b>[% post_date %]</b>
@@ -153,6 +153,18 @@ Posted at <b>[% post_date %]</b>
 <b>Contact Person Name:</b> [% contact_person %]<br />
 </p>
 </div>
+[% IF toolbox %]
+<div class="recordtoolbox">
+<p>
+<a href="./edit/?id=[% id %]">Edit</a><br />
+[% IF enabled %]
+<a href="./disable/?id=[% id %]">Disable</a><br />
+[% ELSE %]
+<a href="./enable/?id=[% id %]">Enable</a><br />
+[% END %]
+</p>
+</div>
+[% END %]
 EOF
 };
 

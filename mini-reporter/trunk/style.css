@@ -55,4 +55,29 @@ tr.space td
     margin-bottom : 20em;
     border-spacing : 0em 20em;
 }
+/* The extra style attributes of the record if it is in admin mode. */
+.recadmin
+{
+    float : left;
+    clear : left;
+}
+/* The style of the admin record toolbox */
+.recordtoolbox
+{
+    float : left;
+    background-color : lavendar;
+    border-style : double ; 
+    border-color : red ; 
+}
+
+h2
+{
+    clear : left;
+}
+
+.footer
+{
+    font-size : smaller;
+    clear : both;
+}
 
