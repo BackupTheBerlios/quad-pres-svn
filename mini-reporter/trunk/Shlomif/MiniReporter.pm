@@ -225,15 +225,26 @@ sub render_record
     my $ret = "";
     my %args = (@_);
 
-    my $config = $args{config};
+    my $config = $self->{config};
     my $values = $args{'values'};
     my $fields = $args{'fields'};
 
-    my $vars = { map { $fields->[$_] => htmlize($values->[$_]) } (1 .. $#$values)};
+    my $vars = { map { $fields->[$_] => htmlize($values->[$_]) } (0 .. $#$values)};
         
     $self->get_record_template_gen()->process('main', $vars, \$ret);
 
     return $ret;
+}
+
+sub get_field_names
+{
+    my $self = shift;
+
+    my $config = $self->{config};
+    
+    my @field_names = ("area", (map { $_->{'sql'} } @{$config->{'fields'}}));
+
+    return \@field_names;
 }
 
 sub search_results
@@ -293,17 +304,10 @@ sub search_results
 
     $ret .= linux_il_header("Search Results", "Search Results");
 
+    my $field_names = $self->get_field_names();
+
     my (@values);
-    my (@field_names);
-
-    foreach my $field (@{$config{'fields'}})
-    {
-    	push @field_names, $field->{'sql'};
-    }
-
-    my @field_names = ("area", (map { $_->{'sql'} } @{$config{'fields'}}));
-
-    my $query_str = "SELECT " . join(", ", @field_names).  
+    my $query_str = "SELECT " . join(", ", @$field_names).  
                     " FROM " . $config{'table_name'} . 
     		" " . $where_clause_template . 
     		(" ORDER BY " . ($config{'order_by'} || "id DESC"));
@@ -323,11 +327,11 @@ sub search_results
 
     while (@values = $query->fetchrow_array())
     {
+        my %params = 
         my $string = 
             $self->render_record(
                 'values' => \@values,
-                'config' => \%config,
-                'fields' => \@field_names,
+                'fields' => $field_names,
             );
 
         push @{$areas_jobs{$values[0]}}, $string;
@@ -478,11 +482,17 @@ sub add_post
 
     my $ret = "";
         
-    $ret .= linux_il_header($config{'strings'}->{'add_result_title'}, "Success");
     
-
     if ($q->param('preview'))
     {
+        $ret .= linux_il_header($config{'strings'}->{'preview_result_title'}, "Preview the Added Record");
+
+        $ret .= 
+            $self->render_record(
+                'fields' => \@field_names,
+                'values' => \@values,
+            );
+                
         my $form = 
             WWW::Form->new(
                 $self->get_form_fields(),
@@ -509,6 +519,8 @@ sub add_post
     }
     else
     {
+        $ret .= linux_il_header($config{'strings'}->{'add_result_title'}, "Success");
+
         my $query_str = "INSERT INTO " . $config{'table_name'} . 
             " (" . join(",", "id", "status", "area", @field_names) . ") " .
             " VALUES ($id, 1, '" . $q->param("area") . "'," .  join(",", (map { $conn->quote($_); } @values)) . ")";
