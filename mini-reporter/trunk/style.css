@@ -1,3 +1,21 @@
 .record { border-style : double ; border-color : green ; width : 30em;}
-.posted { text-align : right }
+.posted 
+{ 
+    text-align : right;
+    margin-top : 0.2em;
+}
 .posted b { color : red }
+.record h3 
+{ 
+    background-color : #E6E6FA; /* Lavender */
+    margin-top : 0em;
+    padding : 0.5em 0.2em 0.5em 0.2em;
+    margin-bottom : 0em;
+}
+.desc 
+{
+    margin : 0em;
+    padding-left : 1em;
+    /* TODO : Change it to some nicer colour */
+    background-color : yellow; 
+}

@@ -40,6 +40,11 @@ use POSIX;
                 },
         },
         {
+            'sql' => "title",
+            'pres' => "Job Title",
+            'sameline' => 1,
+        },
+        {
             qw(sql workplace pres Workplace sameline 1)
         },
         {
@@ -73,11 +78,26 @@ use POSIX;
     ],
     'record_template' => <<EOF
 <div class="record">
+<h3>[% title %]</h3>
 <p class="posted">
 Posted at <b>[% post_date %]</b>
 </p>
 <p class="data">
-<b>Workplace</b>: [% workplace %]<br />
+<b>Company</b>: [% workplace %]<br />
+<b>Job Description:</b><br />
+<div class="desc">
+[% description %]
+</div>
+<b>Requirements:</b><br />
+<div class="desc">
+[% requirements %]
+</div>
+<b>Address:</b> [% address %]<br />
+<b>Phone:</b> [% phone %]<br />
+<b>Cell Phone:</b> [% cellphone %]<br />
+<b>Fax:</b> [% fax %]<br />
+<b>E-mail:</b> [% email %]<br />
+<b>Contact Person Name:</b> [% contact_person %]<br />
 </p>
 </div>
 EOF

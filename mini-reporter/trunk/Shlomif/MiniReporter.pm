@@ -205,7 +205,7 @@ sub tt_render_record
     my $values = $args{'values'};
     my $fields = $args{'fields'};
 
-    # TODO: Make a persistent cross- object
+    # TODO: Make a persistent cross-object templater.
     my $tt = Template->new(
         {
             'BLOCKS' => 
@@ -215,15 +215,7 @@ sub tt_render_record
         },
     );
     
-    # TODO : This area thing is an ugly workaround 
     my $vars = { map { $fields->[$_] => $values->[$_] } (1 .. $#$values)};
-    open O, ">>vars.dump.txt";
-    print O "\n\n[[[NEW Record]]]\n\n";
-    for (my ($k,$v) = each(%$vars))
-    {
-        print O "$k = $v\n";
-    }
-    close(O);
         
     $tt->process('main', $vars, \$ret);
 

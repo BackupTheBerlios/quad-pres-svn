@@ -31,6 +31,11 @@ my @fields =
         't' => 'date',
     },
     {
+        'f' => "title",
+        'add' => 1,
+        't' => "varchar(120)",
+    },
+    {
         'f' => "workplace",
         't' => "varchar(80)",
     },
