@@ -85,13 +85,17 @@ Posted at <b>[% post_date %]</b>
 <p class="data">
 <b>Company</b>: [% workplace %]<br />
 <b>Job Description:</b><br />
+</p>
 <div class="desc">
 [% description %]
 </div>
-<b>Requirements:</b><br />
+<p>
+<b>Requirements:</b>
+</p>
 <div class="desc">
 [% requirements %]
 </div>
+<p class="data">
 <b>Address:</b> [% address %]<br />
 <b>Phone:</b> [% phone %]<br />
 <b>Cell Phone:</b> [% cellphone %]<br />

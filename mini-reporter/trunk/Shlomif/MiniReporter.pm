@@ -70,11 +70,10 @@ sub linux_il_header
 		$title2 = "";
 	}
 
-    my $doctype = q{<!DOCTYPE html
-PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">};
-
 	$ret .= <<"EOF"
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <?xml version="1.0" encoding="iso-8859-1"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
 <head>
@@ -82,21 +81,22 @@ $title1
 <link rel="stylesheet" href="./style.css" type="text/css" />
 </head>
 <body>
-<a href="/"><img SRC="/images/IGLU-banner.jpg" LENGTH=499 HEIGHT=86 ALT="IGLU -
-Israeli Group of Linux Users" BORDER=0 ></a>
-<p>[<a href="/">Home</a> |
+<p>
+<a href="/" title="Back to the IGLU Homepage"><img 
+    src="/images/IGLU-banner.jpg" 
+    width="499" height="86" 
+    alt="IGLU - Israeli Group of Linux Users" 
+    style="border : 0" /></a>
+</p>
+<p style="margin-bottom : 2em">[<a href="/">Home</a> |
 <a href="/IGLU/">News</a> |
 <a href="/about.shtml">About</a> |
 <a href="/faq/">FAQ</a> |
-<a href="/lists/">Lists</a>
-(<a href="http://plasma-gate.weizmann.ac.il/Linux/maillists/">Main Archive</a>)
-|
+<a href="/mailing-lists/">Mailing Lists</a> |
 <a href="/events/">Events</a> |
 <a href="/faq/cache/52.html">Help!</a> |
-<a href="/faq/cache/8.html">Hebrew</a>]
-<br>
+<a href="/faq/cache/8.html">Hebrew</a>]</p>
 
-<br>
 $title2	
 EOF
 	;
@@ -109,16 +109,20 @@ sub linux_il_footer
     my $ret;
     
     $ret .= <<'EOF';
-<HR>
-<font size=-1>
-<P>for more info mail <a href="/cgi-bin/m/infonospam@dhtlinux.org.il">info</a>,
-for website remarks mail the <a href="/cgi-bin/m/webmasternospam@dhtlinux.org.il
-"><EM>webmasters</EM></A>.
-<br>
+<hr />
+<div style = "font-size : smaller">
+<p>For more info mail <a href="/cgi-bin/m/infonospam@dhtlinux.org.il">info</a>,
+for website remarks mail the 
+<a href="/cgi-bin/m/webmasternospam@dhtlinux.org.il"><em>webmasters</em></a>.
+</p>
+<p>
 All Trademarks and copyrights are owned by their respective owners, Linux is a Tradmark of Linus Torvalds.
-<br>
+</p>
+<p>
 The information contained herein is CopyLeft IGLU, you are granted permission to
 copy it and distribute it.
+</p>
+</div>
 </body>
 </html>
 EOF
@@ -140,44 +144,37 @@ sub main_page
     $ret .= linux_il_header($title, $title);
     
     $ret .= <<'EOF'
-<br>
-
 <h3>Search the Database</h3>
 
-<form action="search.pl" method="POST">
+<form action="search.pl" method="post">
 
-Area: 
+<p>Area: 
 <select name="area">
-<option selected>All
+<option selected="selected">All</option>
 EOF
 
     ;
 
     foreach my $area (@{$config->{'areas'}})
     {
-    	$ret .= ( "<option>" . $area . "\n");
+    	$ret .= ( "<option>" . $area . "</option>\n");
     }
 
     $ret .= <<'EOF';
 </select>
-<br>
-<br>
-Keyword from description: <input name="keyword"><br>
-<br>
-<input type="submit" value="Search">
+</p>
+<p>
+Keyword from description: <input name="keyword" />
+</p>
+<p>
+<input type="submit" value="Search" />
+</p>
 </form>
-<br>
 EOF
 	;
 
-    $ret .= "<a href=\"search.pl?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br>\n";
-    $ret .= "<a href=\"add_form.pl\">" . $config->{'strings'}->{'add_a_record_text'} . "</a>";
-
-    $ret .= <<'EOF';
-<br><br><br><br><br>
-EOF
-
-       ;
+    $ret .= "<p><a href=\"search.pl?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br />\n";
+    $ret .= "<a href=\"add_form.pl\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></p>";
 
     $ret .= linux_il_footer();
 
@@ -191,6 +188,7 @@ sub htmlize
 	my $char_convert = 
 	sub {
 		my $char = shift;
+        my $ascii = ord($char);
 		
 		if ($char eq '&')
 		{
@@ -203,12 +201,16 @@ sub htmlize
 		elsif ($char eq '<')
 		{
 			return "&lt;";
-		}	
+        }
+        elsif ($ascii > 127)
+        {
+            return sprintf("&#x%.4x;", $ascii);
+        }
 	};
 
-	$string =~ s/([&<>])/$char_convert->($1)/ge;
+	$string =~ s/([&<>\x80-\xFF])/$char_convert->($1)/ge;
 	
-	$string =~ s/\n\r?/<br>\n/g;
+	$string =~ s/\n\r?/<br \/>\n/g;
 	
 	return $string;
 }
@@ -224,9 +226,7 @@ sub render_record
     my $values = $args{'values'};
     my $fields = $args{'fields'};
 
-    # TODO: Make a persistent cross-object templater.
-    
-    my $vars = { map { $fields->[$_] => $values->[$_] } (1 .. $#$values)};
+    my $vars = { map { $fields->[$_] => htmlize($values->[$_]) } (1 .. $#$values)};
         
     $self->get_record_template_gen()->process('main', $vars, \$ret);
 
@@ -334,14 +334,8 @@ sub search_results
     {
     	$ret .= "<h2>" . $area . "</h2>\n\n";
 
-    	$ret .= join("<br>\n<br>\n\n", @{$areas_jobs{$area}});
+    	$ret .= join("", @{$areas_jobs{$area}});
     }
-
-    $ret .= <<'EOF' ;
-<br><br><br><br>
-EOF
-
-      ;
 
     $ret .= linux_il_footer();
 
