@@ -23,6 +23,11 @@ my %modes =
         'url' => "/add/",
         'func' => "add_form",
     },
+    'remove' =>
+    {
+        'url' => "/remove/",
+        'func' => "remove",
+    },
     'search' =>
     {
         'url' => "/search/",
@@ -820,6 +825,40 @@ sub admin_screen
        'all_records' => 1,
        'toolbox' => 1,
     );
+}
+
+sub remove
+{
+    my $self = shift;
+
+    my $config = $self->{config};
+    
+
+    my $ret = "";
+
+    $ret .= $self->linux_il_header($config->{'strings'}->{'remove_result_title'}, "Remove a Job");
+
+    $ret .= <<"EOF" ;
+<p>
+In order to remove your entry from the job list, please send a personal
+E-mail to <a href="mailto:webmaster\@iglu.org.il">webmaster\@iglu.org.il</a>
+specifying the entry you wish to remove. (please be as clear as possible,
+and as detailed as necessary.) We will disable it (so it won't be seen)
+and let you know about it.
+</p>
+<p>
+We regret the fact that there isn't an automated mechanism for disabiling 
+an entry. However, this will require much more work to be conducted in the
+jobs tracker. This may be done in the future, but at the moment the gain
+is far below the effort that would need to be invested.
+</p>
+EOF
+
+    ;
+    
+    $ret .= linux_il_footer();
+
+    return $ret;
 }
 
 1;

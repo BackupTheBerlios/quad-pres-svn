@@ -15,6 +15,7 @@ $config =
         'add_a_record_text' => "Add a job to the database",
         'preview_result_title' => "Preview the Job Before Adding",
         'remove_a_record_text' => "Remove a Job from the database",
+        'remove_result_title' => "Howto Remove a Job",
     },
     'dsn' => 'dbi:mysql:test_jobs',
     'table_name' => 'jobs2',
