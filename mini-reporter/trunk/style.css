@@ -25,3 +25,8 @@
     /* TODO : Change it to some nicer colour */
     background-color : yellow; 
 }
+
+.myform td
+{
+    vertical-align : top;
+}

@@ -372,12 +372,17 @@ sub get_form_fields
         validators => [],
     };
 
+    # Number of characters for the input tag or textarea to be as wide;
+    my $input_length = 40;
+    my $input_height = 10;
+
     foreach my $f (@{$config->{fields}})
     {
         if ($f->{'gen'}->{'auto'})
         {
             next;
         }
+        
         $fields{$f->{sql}} = 
         {
             label => $f->{'pres'},
@@ -394,6 +399,11 @@ sub get_form_fields
                 ): 
                 ()
             ],
+            extraAttributes => 
+                ($f->{sameline} ? 
+                    " size=\"$input_length\" " :
+                    " cols=\"$input_length\" rows=\"$input_height\""
+                ),
         };
     }
 
@@ -446,11 +456,12 @@ sub add_form
     
     my $form = $self->get_form();
 
-     $ret .= $form->get_form_HTML(
+    $ret .= $form->get_form_HTML(
          submit_label => "Preview", 
          action => './add.pl',
          submit_name => "preview",
          submit_class => "preview",
+         attributes => { 'class' => "myform" },
      );
 
      $ret .= linux_il_footer();
@@ -520,6 +531,7 @@ sub add_post
                     submit_name => "submit",
                 },
             ],
+            attributes => { 'class' => "myform" },
          );
     }
     else
