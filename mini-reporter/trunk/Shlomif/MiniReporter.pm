@@ -358,6 +358,10 @@ EOF
 
     foreach my $field (@{$config{'fields'}})
     {
+        if ($field->{'gen'}->{'auto'})
+        {
+            next;
+        }
     	$ret .= ( $field->{'pres'} .  ": ");
     	if ($field->{'sameline'})
     	{
@@ -416,7 +420,16 @@ sub add_post
     foreach my $a (@{$config{'fields'}})
     {
     	push @field_names, $a->{'sql'};
-    	push @values, $q->param($a->{'sql'});
+        my $v;
+        if (exists($a->{'gen'}))
+        {
+            $v= $a->{'gen'}->{callback}->($q->param($a->{'sql'}));
+        }
+        else
+        {
+    	    $v = $q->param($a->{'sql'});
+        }
+        push @values, $v;
     }
 
     my $query_str = "INSERT INTO " . $config{'table_name'} . 
