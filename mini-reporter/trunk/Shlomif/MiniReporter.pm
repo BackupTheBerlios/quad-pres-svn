@@ -446,6 +446,24 @@ sub get_form
     return $form;
 }
 
+sub get_form_html
+{
+    my $self = shift;
+
+    my $form = shift;
+
+    my $params = shift;
+
+    my $ret = "";
+
+    $ret .= "<p class=\"warning\"><b>Note:</b> all entries must be in English.".
+            "(or else they won't be displayed correctly</p>";
+
+    $ret .= $form->get_form_HTML(@$params);
+
+    return $ret;
+}
+
 sub add_form
 {
     my $self = shift;
@@ -458,15 +476,19 @@ sub add_form
     
     my $form = $self->get_form();
 
-    $ret .= $form->get_form_HTML(
-         submit_label => "Preview", 
-         action => './add.pl',
-         submit_name => "preview",
-         submit_class => "preview",
-         attributes => { 'class' => "myform" },
-     );
+    $ret .= $self->get_form_html($form, 
+        [
+            submit_label => "Preview", 
+            action => './add.pl',
+            submit_name => "preview",
+            submit_class => "preview",
+            attributes => { 'class' => "myform" },
+        ]
+    );
 
-     $ret .= linux_il_footer();
+    $ret .= linux_il_footer();
+
+    return $ret;
 }
 
 sub add_post
@@ -516,24 +538,24 @@ sub add_post
                 'values' => \@values,
             );
 
-        
-                
-        $ret .= $form->get_form_HTML(
-            'buttons' =>
+        $ret .= $self->get_form_html($form,
             [
-                {
-                    submit_label => "Preview", 
-                    action => './add.pl',
-                    submit_name => "preview",
-                    submit_class => "preview",
-                },
-                {
-                    submit_label => "Submit",
-                    action => './add.pl',
-                    submit_name => "submit",
-                },
-            ],
-            attributes => { 'class' => "myform" },
+                'buttons' =>
+                [
+                    {
+                        submit_label => "Preview", 
+                        action => './add.pl',
+                        submit_name => "preview",
+                        submit_class => "preview",
+                    },
+                    {
+                        submit_label => "Submit",
+                        action => './add.pl',
+                        submit_name => "submit",
+                    },
+                ],
+                attributes => { 'class' => "myform" },
+            ]
          );
     }
     else

@@ -25,7 +25,6 @@
     /* TODO : Change it to some nicer colour */
     background-color : yellow; 
 }
-
 .myform td
 {
     vertical-align : top;
@@ -33,5 +32,8 @@
     border-style : double;
     border-width : thin;
 }
-
+.warning
+{
+    font-size : large;
+}
 
