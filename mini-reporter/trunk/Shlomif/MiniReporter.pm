@@ -15,22 +15,22 @@ my %modes =
 (
     'main' => 
     {
-        'url' => "",
+        'url' => "/",
         'func' => "main_page",
     },
     'add' =>
     {
-        'url' => "add/",
+        'url' => "/add/",
         'func' => "add_form",
     },
     'search' =>
     {
-        'url' => "search/",
+        'url' => "/search/",
         'func' => "search_results",
     },
     'css' =>
     {
-        'url' => "style.css",
+        'url' => "/style.css",
         'func' => "css_stylesheet",
     },
 );
@@ -70,15 +70,31 @@ sub correct_path
     $path =~ m#([^/]+)/*$#;
 
     my $last_component = $1;
+
+    # This is in case we were passed the script name without a trailing /
+    # in which case the last component would be undefined. So consult
+    # the request uri.
+    if (!defined($last_component))
+    {
+        # Extract the Request URI
+        my $request_uri = $ENV{REQUEST_URI} || "";
+        $request_uri =~ m#([^/]+)/*$#;
+        $last_component = $1;
+        if (!defined($last_component))
+        {
+            $last_component = "";
+        }
+    }
+
     $self->header_type('redirect');
     $self->header_props(-url => "./$last_component/");
 }
 
 sub get_path
 {
-    my $path = $ENV{'PATH_INFO'} || "";
+    my $self = shift;
 
-    $path =~ s/^\///;
+    my $path = $ENV{'PATH_INFO'} || "";
 
     return $path;
 }
