@@ -7,5 +7,5 @@ if [ "$arg" = "--stable" ] ; then
     upload_to="$upload_to_base"
 fi
 rsync -v --progress --rsh=ssh --relative \
-    *.pl MyConfig.pm style.css Shlomif/MiniReporter.pm WWW/Form.pm \
+    *.pl MyConfig.pm style.css Shlomif/MiniReporter.pm \
     "$upload_to"

@@ -300,8 +300,11 @@ Keyword from description: <input name="keyword" />
 EOF
 	;
 
-    $ret .= "<p><a href=\"./search/?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br />\n";
-    $ret .= "<a href=\"./add/\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></p>";
+    $ret .= "<ul>\n";
+    $ret .= "<li><a href=\"./search/?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a></li>\n";
+    $ret .= "<li><a href=\"./add/\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></li>\n";
+    $ret .= "<li><a href=\"./remove/\">" . $config->{'strings'}->{'remove_a_record_text'} . "</a></li>\n" ;
+    $ret .= "</ul>\n";
 
     $ret .= linux_il_footer();
 
