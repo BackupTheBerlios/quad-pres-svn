@@ -22,7 +22,7 @@ fi
 make dist
 
 if $RPM ; then
-    rpm -tb LM-Solve-`cat ver.txt`.tar.gz
+    rpm -tb LM-Solve-`perl get-version.pl`.tar.gz
 fi
 
 
