@@ -8,10 +8,29 @@ sub initialize
 {
 	my $self = shift;
 	
-	$self->{'config'} = shift;
+    my $config = shift;
+	$self->{'config'} = $config; 
 	$self->{'cgi'} = shift;
-	
+
+    my $tt = Template->new(
+        {
+            'BLOCKS' => 
+                {
+                    'main' => $config->{'record_template'},
+                },
+        },
+    );
+
+    $self->{'record_tt'} = $tt;
+
 	return 0;
+}
+
+sub get_record_template_gen
+{
+    my $self = shift;
+
+    return $self->{record_tt};
 }
 
 sub new 
@@ -206,18 +225,10 @@ sub render_record
     my $fields = $args{'fields'};
 
     # TODO: Make a persistent cross-object templater.
-    my $tt = Template->new(
-        {
-            'BLOCKS' => 
-                {
-                    'main' => $config->{'record_template'},
-                },
-        },
-    );
     
     my $vars = { map { $fields->[$_] => $values->[$_] } (1 .. $#$values)};
         
-    $tt->process('main', $vars, \$ret);
+    $self->get_record_template_gen()->process('main', $vars, \$ret);
 
     return $ret;
 }
