@@ -23,6 +23,7 @@ use POSIX;
     'dsn' => 'dbi:mysql:test_jobs',
     'table_name' => 'jobs2',
     'areas' => [ "Tel Aviv", "Haifa", "Jerusalem", "North", "South" ],
+    'order_by' => "post_date DESC, id DESC",
     'fields' =>
     [
         {
