@@ -1,14 +1,14 @@
 Pressing:
 ---------
 
-* Convert to CGI::Application. (and HTML::Template ?)
-
 * Convert to Tangram.
 
 * Find a way to do a spacing.
 
 Long-term:
 ----------
+
+* Convert to HTML::Template (?)
 
 * Find a way to restrict the width of the table to the width of the 
 input cells.

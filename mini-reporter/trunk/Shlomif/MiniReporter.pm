@@ -26,7 +26,7 @@ my %modes =
     'search' =>
     {
         'url' => "search/",
-        'func' => "search",
+        'func' => "search_results",
     },
     'css' =>
     {
@@ -246,7 +246,7 @@ sub main_page
     $ret .= <<'EOF'
 <h3>Search the Database</h3>
 
-<form action="search.pl" method="post">
+<form action="./search/" method="post">
 
 <p>Area: 
 <select name="area">
@@ -273,7 +273,7 @@ Keyword from description: <input name="keyword" />
 EOF
 	;
 
-    $ret .= "<p><a href=\"search?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br />\n";
+    $ret .= "<p><a href=\"./search/?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a><br />\n";
     $ret .= "<a href=\"./add/\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></p>";
 
     $ret .= linux_il_footer();
@@ -463,6 +463,16 @@ sub get_form_fields
 
     my %fields = ();
 
+    my $field_idx = 0;
+
+    my $get_alternate_style = sub {
+        my $ret = (($field_idx % 2 == 1) ? "hilight" : "hilight2");
+
+        $field_idx++;
+        
+        return $ret;
+    };
+   
     $fields{area} = {
         label => "Area",
         defaultValue => "Tel Aviv",
@@ -471,13 +481,16 @@ sub get_form_fields
             map { +{ 'label' => $_, 'value' => $_, }, } @{$config->{'areas'}},
         ],
         validators => [],
+        'tr_class' => $get_alternate_style->(),
+        hint => ("The area in Israel of the employing firm.<br />" . 
+                "If the work is from home, select the area of the office."),
     };
 
     # Number of characters for the input tag or textarea to be as wide;
     my $input_length = 40;
     my $input_height = 10;
 
-    my $field_idx = 0;
+    
 
     foreach my $f (@{$config->{fields}})
     {
@@ -519,12 +532,8 @@ sub get_form_fields
             # Give the hint if it exists
             (exists($f->{hint}) ? (hint => $f->{hint}) : ()),
             # Highlight the odd numbered fields
-            tr_class => (($field_idx % 2 == 1) ? "hilight" : "hilight2"),
+            tr_class => $get_alternate_style->(),
         };
-    }
-    continue
-    {
-        $field_idx++;
     }
 
     return \%fields;
@@ -537,6 +546,9 @@ sub get_form_fields_sequence
     my $config = $self->{config};
 
     my @ret;
+
+    # Don't forget to put the area - otherwise WWW::Form won't display it.
+    push @ret, 'area';
     
     foreach my $f (@{$config->{fields}})
     {
@@ -579,34 +591,6 @@ sub get_form_html
             "(or else they won't be displayed correctly</p>";
 
     $ret .= $form->get_form_HTML(@$params);
-
-    return $ret;
-}
-
-sub add_form_old
-{
-    my $self = shift;
-
-    my $ret = "";
-
-    my $config = $self->{config};
-
-    
-    
-    my $form = $self->get_form();
-
-    $ret .= $self->get_form_html($form, 
-        [
-            submit_label => "Preview", 
-            action => './add.pl',
-            submit_name => "preview",
-            submit_class => "preview",
-            attributes => { 'class' => "myform" },
-            hint_tr_class => "space",
-        ]
-    );
-
-    $ret .= linux_il_footer();
 
     return $ret;
 }
@@ -720,7 +704,7 @@ The job was added to the database.<br>
 EOF
         ;
         
-        $ret .= "<a href=\"main.pl\">" . $config->{'strings'}->{'add_back_link_text'} . "</a>\n";
+        $ret .= "<a href=\"../\">" . $config->{'strings'}->{'add_back_link_text'} . "</a>\n";
     }   
 
     $ret .= linux_il_footer();
