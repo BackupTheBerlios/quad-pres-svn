@@ -131,6 +131,24 @@ sub perform_move
     return &die_on_abstract_function();
 }
 
+sub set_run_time_states_display
+{
+    my $self = shift;
+    my $states_display = shift;
+
+    if (! $states_display)
+    {
+        $self->{'cmd_line'}->{'rt_states_display'} = undef;
+    }
+    else
+    {
+        $self->{'cmd_line'}->{'rt_states_display'} = 1;
+        $self->{'run_time_display_callback'} = $states_display;
+    }
+
+    return 0;
+}
+
 sub solve_brfs_or_dfs
 {
     my $self = shift;
@@ -140,6 +158,7 @@ sub solve_brfs_or_dfs
     my %args = @_;
     
     my $run_time_display = $self->{'cmd_line'}->{'rt_states_display'};
+    my $rtd_callback = $self->{'run_time_display_callback'};
     my $max_iters = $args{'max_iters'} || (-1);
     my $not_check_iters = ($max_iters < 0);
     
@@ -174,7 +193,12 @@ sub solve_brfs_or_dfs
         # is set.
         if ($run_time_display)
         {
-            print ((" " x $depth) . join(",", @$coords) . " M=" . $self->render_move($state_collection->{$state}->{'m'}) ."\n");
+            $rtd_callback->(
+                'depth' => $depth,
+                'state' => $coords,
+                'move' => $state_collection->{$state}->{'m'}
+            );
+            # print ((" " x $depth) . join(",", @$coords) . " M=" . $self->render_move($state_collection->{$state}->{'m'}) ."\n");
         }
         
         if ($self->check_if_unsolveable($coords))
@@ -357,6 +381,12 @@ sub display_solution
     }
 }
 
+sub _default_rtd_callback
+{
+    my %args = @_;
+    print ((" " x $args{depth}) . join(",", @{$args{state}}) . " M=" . $self->render_move($args{move}) ."\n");
+}
+
 sub main
 {
     my $self = shift;
@@ -386,7 +416,7 @@ sub main
     $self->{'cmd_line'}->{'to_rle'} = $to_rle;
     $self->{'cmd_line'}->{'output_states'} = $output_states;
     $self->{'cmd_line'}->{'scan'} = $scan;
-    $self->{'cmd_line'}->{'rt_states_display'} = $run_time_states_display;
+    $self->set_run_time_display_callback($run_time_states_display && \&_default_rtd_callback);
 
     my $filename = shift(@ARGV) || "board.txt";
 
