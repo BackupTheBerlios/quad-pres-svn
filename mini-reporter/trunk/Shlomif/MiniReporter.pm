@@ -194,7 +194,7 @@ sub htmlize
 	return $string;
 }
 
-sub tt_render_record
+sub render_record
 {
     my $self = shift;
 
@@ -220,59 +220,6 @@ sub tt_render_record
     $tt->process('main', $vars, \$ret);
 
     return $ret;
-}
-
-sub render_record
-{
-    my $self = shift;
-
-    my $string = "";
-
-    # An ad-hoc hack to switch Template Toolkit on and off.
-    my $q = $self->{'cgi'};
-
-    if ($q->param("tt"))
-    {
-        $string .= $self->tt_render_record(@_);
-    }
-
-    my %args = (@_);
-
-    my %config = %{$args{'config'}};
-    my @values = @{$args{'values'}};
-    
-    $string .=
-    "<table border=1>\n" .
-    "<tr>\n" .
-    "<td>\n";
-    
-    for(my $a=0 ; $a<scalar(@{$config{'fields'}}) ; $a++)
-    {
-        $string .= "<b>" . $config{'fields'}->[$a]->{'pres'} .
-"</b>: ";
-    if (! $config{'fields'}->[$a]->{'sameline'})
-    {
-        $string .= "<br>\n";
-    }
-    
-    if ($config{'fields'}->[$a]->{'flags'} =~ /email/)
-    {
-        $string .= "<a href=\"mailto:". htmlize($values[$a+1]) . "\">" . htmlize($values[$a+1]) . "</a>";
-    }
-    else
-    {
-        $string .= htmlize($values[$a+1]);
-    }
-    
-    
-    $string .= "<br>\n";	
-    }
-    
-    $string .=  "</td>\n" .
-        "</tr>\n" .
-        "</table>\n";
-
-    return $string;
 }
 
 sub search_results
