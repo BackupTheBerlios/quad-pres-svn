@@ -27,12 +27,27 @@
 .myform td
 {
     vertical-align : top;
-    border-color : darkgreen;
-    border-style : double;
+    border-color : #006400; /* Dark Green */
+    border-style : solid;
     border-width : thin;
+    padding : 0.2em;
 }
 .warning
 {
     font-size : large;
+}
+/* Highlight each two rows in the input table in different colors */
+.hilight
+{
+    background-color : #F5DEB3; /* Wheat */
+}
+.hilight2
+{
+    background-color : #84db84;
+}
+/* Put some spacing between each two rows to distiniguish the records */
+tr.space 
+{
+    margin-bottom : 20em;
 }
 

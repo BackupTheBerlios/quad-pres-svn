@@ -838,6 +838,11 @@ sub _setFields {
         # Add the hint
         $self->{fields}{$fieldName}{hint} = 
             $fieldsData->{$fieldName}{hint};
+
+        # Add the tr class
+        $self->{fields}{$fieldName}{tr_class} = 
+            $fieldsData->{$fieldName}{tr_class};
+            
     }
 }
 
@@ -923,10 +928,17 @@ sub getFieldFormInputHTML {
 
 =head2 getFieldHTMLRow
 
+    $self->getFieldHTMLRow($fieldName, 
+        'attributesString' => $attributesString,
+        'form_args' => \%form_args,
+    );
+
 Returns HTML to display in a web page.  $fieldName is a key of the $fieldsData
 hash that was used to create a WWW::Form object. $attributesString is an
 (optional) arbitrary string of HTML attribute key='value' pairs that you can
-use to add attributes to the form input.
+use to add attributes to the form input. %form_args are the parameters
+passed to the form as a whole, and this function will extract relevant 
+parameters out of there.
 
 The only caveat for using this method is that it must be called between
 <table> and </table> tags.  It produces the following output:
@@ -949,7 +961,10 @@ The only caveat for using this method is that it must be called between
 sub getFieldHTMLRow {
     my $self             = shift;
     my $fieldName        = shift;
-    my $attributesString = shift;
+    
+    my %func_args = (@_);
+    my $attributesString = $func_args{'attributesString'};
+    my $form_args = $func_args{'form_args'};
 
     my $field = $self->getField($fieldName);
 
@@ -959,13 +974,22 @@ sub getFieldHTMLRow {
 
     my $html = "";
 
+    my @tr_css_classes = ();
+    
+    if (exists($field->{tr_class}))
+    {
+        push @tr_css_classes, $field->{tr_class};
+    }
+
+    my $tr_css_classes = " class=\"".join(" ", @tr_css_classes)."\"";
     foreach my $error (@feedback) {
-        $html .= "<tr><td colspan='2'>"
+        $html .= "<tr${tr_css_classes}><td colspan='2'>"
             . "<span style='color: #ff3300'>$error</span>"
 	        . "</td></tr>\n";
     }
 
-    $html .= "<tr><td>" . $self->getFieldLabel($fieldName) . "</td>"
+    $html .= "<tr${tr_css_classes}><td>" . 
+        $self->getFieldLabel($fieldName) . "</td>"
         . "<td>" . $self->getFieldFormInputHTML(
             $fieldName,
             $attributesString
@@ -976,7 +1000,14 @@ sub getFieldHTMLRow {
     
     if (defined($hint))
     {
-        $html .= "<tr><td colspan=\"2\">$hint</td></tr>\n";
+        my @hint_tr_css_classes = @tr_css_classes;
+        my $hint_tr_class = $form_args->{'hint_tr_class'};
+        if (defined($hint_tr_class))
+        {
+            push @hint_tr_css_classes, $hint_tr_class;
+        }
+        my $hint_tr_classes = " class=\"".join(" ", @hint_tr_css_classes)."\"";
+        $html .= "<tr${hint_tr_classes}><td colspan=\"2\">$hint</td></tr>\n";
     }
 
     return $html;
@@ -1142,6 +1173,8 @@ HTML attributes.
 is_file_upload - Optional boolean that should be true if your form contains
 a file input.
 
+hint_tr_class - Optional CSS class for all the table rows containing hints.
+
   Example:
 
   print $form->getFormHTML(
@@ -1164,7 +1197,10 @@ sub getFormHTML {
     # Go through all of our form fields and build an HTML input for each field
     for my $fieldName (@{$self->getFieldsOrder()}) {
         #warn("field name is: $fieldName");
-        $html .= $self->getFieldHTMLRow($fieldName);
+        $html .= $self->getFieldHTMLRow(
+            $fieldName,
+            'form_args' => \%args,
+        );
     }
 
     $html .= "</table>\n";
@@ -1178,7 +1214,7 @@ sub getFormHTML {
     }
 
     # Add submit button
-    $html .= $self->_getSubmitButtonHTML(%args) . "\n";
+    $html .= "<p>" . $self->_getSubmitButtonHTML(%args) . "</p>\n";
 
     return $html . $self->endForm() . "\n";
 }

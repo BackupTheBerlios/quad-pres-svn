@@ -380,13 +380,15 @@ sub get_form_fields
     my $input_length = 40;
     my $input_height = 10;
 
+    my $field_idx = 0;
+
     foreach my $f (@{$config->{fields}})
     {
         if ($f->{'gen'}->{'auto'})
         {
             next;
         }
-        
+
         $fields{$f->{sql}} = 
         {
             label => $f->{'pres'},
@@ -419,7 +421,13 @@ sub get_form_fields
                 ),
             # Give the hint if it exists
             (exists($f->{hint}) ? (hint => $f->{hint}) : ()),
+            # Highlight the odd numbered fields
+            tr_class => (($field_idx % 2 == 1) ? "hilight" : "hilight2"),
         };
+    }
+    continue
+    {
+        $field_idx++;
     }
 
     return \%fields;
@@ -497,6 +505,7 @@ sub add_form
             submit_name => "preview",
             submit_class => "preview",
             attributes => { 'class' => "myform" },
+            hint_tr_class => "space",
         ]
     );
 

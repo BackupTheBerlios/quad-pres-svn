@@ -1,11 +1,8 @@
 Pressing:
 ---------
 
-* Write a cron job to invalidate the old jobs.
-
-* Change the colour of the paragraph to something better than yellow.
-
-* Highlight each two rows in a different colour.
+* Highlight each two rows in a different colour + define a small spacing 
+between each two rows.
 
 Long-term:
 ----------
