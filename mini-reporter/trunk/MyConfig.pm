@@ -80,7 +80,6 @@ Posted at <b>[% post_date %]</b>
 <b>Workplace</b>: [% workplace %]<br />
 </p>
 </div>
-</div>
 EOF
 );
 

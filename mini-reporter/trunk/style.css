@@ -1,3 +1,3 @@
-.record { border-style : single ; border-color : green }
+.record { border-style : double ; border-color : green ; width : 30em;}
 .posted { text-align : right }
-.posted b { text-color : red }
+.posted b { color : red }
