@@ -114,9 +114,9 @@ sub linux_il_footer
     $ret .= <<'EOF';
 <hr />
 <div style = "font-size : smaller">
-<p>For more info mail <a href="/cgi-bin/m/infonospam@dhtlinux.org.il">info</a>,
+<p>For more info or
 for website remarks mail the 
-<a href="/cgi-bin/m/webmasternospam@dhtlinux.org.il"><em>webmasters</em></a>.
+<a href="mailto:webmaster@iglu.org.il"><em>webmasters</em></a>.
 </p>
 <p>
 All Trademarks and copyrights are owned by their respective owners, Linux is a Tradmark of Linus Torvalds.

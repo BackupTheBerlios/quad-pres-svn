@@ -49,6 +49,7 @@ use POSIX;
             "System Administrator"<br />
             "Embedded Linux Developer"<br />
             "Web Designer".<br />},
+            'len' => 120,
         },
         {
             qw(sql workplace pres Workplace sameline 1),
@@ -58,6 +59,7 @@ use POSIX;
             "Tel Aviv/Haifa/etc."<br />
             "On-site"<br />
             (You can write Confidential.)},
+            'len' => 80,
         },
         {
             sql => 'description',
@@ -67,6 +69,7 @@ use POSIX;
                 Describe the job in detail. What it involves, <br/>
                 what will the employee do, etc.
             },
+            len => 65000,
         },
         {
             qw(sql requirements pres Requirements sameline 0),
@@ -76,6 +79,7 @@ use POSIX;
                 in SQL", "A Computer Science or similar B.Sc.",<br />
                 "A driver's license", "Teamwork"<br />
             },
+            len => 65000,
         },
         {
             qw(sql address pres Address sameline 0),
@@ -83,12 +87,14 @@ use POSIX;
                 The address of the company (in the real world). <br />
                 Street,City, Zip-code. Optional
             },
+            len => 65000,
         },
         {
             qw(sql phone pres Phone sameline 1),
             hint => qq{ 
                 The telephone number in which you can be reached.
             },
+            len => 30,
         },
         {
             'sql' => "cellphone",
@@ -98,18 +104,21 @@ use POSIX;
                 Cellular (mobile) Phone number in which you can be
                 reached.
             },
+            len => 30,
         },
         {
             qw(sql fax pres Fax sameline 1),
             hint => qq{
                 Fax number where resumes can be sent.
             },
+            len => 30,
         },
         {    
             qw(sql email pres E-mail sameline 1 flags email),
             hint => qq{
                 E-mail address where you or the company can be contacted at.
             },
+            len => 255,
         },
         {
             'sql' => 'contact_person',
@@ -119,6 +128,7 @@ use POSIX;
                 Name of the contact person in the company which the <br />
                 nomineee should contact.
             },
+            len => 100,
         },
     ],
     'record_template' => <<EOF
