@@ -22,8 +22,7 @@
 {
     margin : 0em;
     padding-left : 1em;
-    /* TODO : Change it to some nicer colour */
-    background-color : yellow; 
+    background-color : #FFFF88 ;
 }
 .myform td
 {
