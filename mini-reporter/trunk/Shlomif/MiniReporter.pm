@@ -186,7 +186,7 @@ EOF
 
 sub htmlize
 {
-	my $string = shift;
+	my $string = shift || "";
 	
 	my $char_convert = 
 	sub {
@@ -263,7 +263,9 @@ sub search_results
 
     my ($where_clause_template, @areas);
 
-    if ($q->param("all") eq "1")
+    my $all_param = $q->param("all") || "";
+
+    if ($all_param eq "1")
     {
     	$where_clause_template = "WHERE status=1";	
     	
@@ -271,7 +273,8 @@ sub search_results
     }
     else
     {
-    	if ($q->param("keyword") =~ /^\s*$/) {
+        my $keyword_param = $q->param("keyword") || "";
+    	if ($keyword_param =~ /^\s*$/) {
     		$where_clause_template = "WHERE status=1";
     	}
     	else
@@ -290,8 +293,10 @@ sub search_results
 
     		$where_clause_template = "WHERE status=1 AND (" . join(" OR ", @search_clauses) . ")";
     	}
+
+        my $area_param = $q->param("area") || "";
     	
-    	if ($q->param("area") eq 'All')
+    	if ($area_param eq 'All')
     	{
     		@areas = @area_list;
     	}
@@ -327,7 +332,6 @@ sub search_results
 
     while (@values = $query->fetchrow_array())
     {
-        my %params = 
         my $string = 
             $self->render_record(
                 'values' => \@values,
