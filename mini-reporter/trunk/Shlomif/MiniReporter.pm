@@ -362,6 +362,8 @@ sub search_results
 
     my $all_param = $q->param("all") || "";
 
+    my %does_area_exists_map = (map { $_ => 1} @area_list);
+
     if ($all_param eq "1")
     {
     	$where_clause_template = "WHERE status=1";	
@@ -438,8 +440,14 @@ sub search_results
         push @{$areas_jobs{$values[0]}}, $string;
     }
 
-    foreach my $area (@areas)
+    AREA_LOOP: foreach my $area (@areas)
     {
+        # Check if the area is a valid one and if not skip this 
+        # iteration.
+        if (!exists($does_area_exists_map{$area}))
+        {
+            next AREA_LOOP;
+        }
     	$ret .= "<h2>" . $area . "</h2>\n\n";
 
     	$ret .= join("", @{$areas_jobs{$area}});

@@ -1,3 +1,7 @@
+body
+{
+    background-color : white;
+}
 .record 
 { 
     border-style : double ; 
@@ -46,8 +50,9 @@
     background-color : #84db84;
 }
 /* Put some spacing between each two rows to distiniguish the records */
-tr.space 
+tr.space td
 {
     margin-bottom : 20em;
+    border-spacing : 0em 20em;
 }
 
