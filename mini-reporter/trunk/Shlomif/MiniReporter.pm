@@ -15,7 +15,7 @@ my %modes =
 (
     'main' => 
     {
-        'url' => "/",
+        'url' => "",
         'func' => "main_page",
     },
     'add' =>
