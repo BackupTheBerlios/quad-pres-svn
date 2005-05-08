@@ -238,6 +238,7 @@ sub linux_il_header
 <head>
 $title1
 <link rel="stylesheet" href="./${css_path}style.css" type="text/css" />
+<link rel="alternate" title="Better SCM RSS Feed" href="./${css_path}index.rss" type="application/rss+xml" />
 </head>
 <body>
 <p>
@@ -355,6 +356,7 @@ EOF
     $ret .= "<li><a href=\"./search/?all=1\">" . $self->get_string('show_all_records_text') . "</a></li>\n";
     $ret .= "<li><a href=\"./add/\">" . $self->get_string('add_a_record_text') . "</a></li>\n";
     $ret .= "<li><a href=\"./remove/\">" . $self->get_string('remove_a_record_text') . "</a></li>\n" ;
+    $ret .= "<li><a href=\"./index.rss\">Subscribe to our RSS Feed</a></li>\n";
     $ret .= "</ul>\n";
 
     $ret .= linux_il_footer();
@@ -945,7 +947,7 @@ sub update_rss_feed
         my $date_time =
             POSIX::mktime(0, 30, 18, $date_day, $date_month-1, $date_year-1900);
 
-        my $item_url = $self->get_url_to_main() . "show-job/" . $fields{'id'} . "/";
+        my $item_url = $self->get_url_to_main() . "show-record/" . $fields{'id'} . "/";
     
         $rss_feed->add_item(
             'title' => $fields{'title'},
