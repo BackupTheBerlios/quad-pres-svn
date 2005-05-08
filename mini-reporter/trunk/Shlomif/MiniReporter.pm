@@ -6,12 +6,15 @@ use DBI;
 use Template;
 # Inherit from CGI::Application.
 use base 'CGI::Application';
+use base 'Class::Accessor';
+
+use XML::RSS;
 
 use WWW::Form;
 
 use WWW::FieldValidator;
 
-my %modes = 
+my %modes =
 (
     'main' => 
     {
@@ -43,9 +46,16 @@ my %modes =
         'url' => "/admin/",
         'func' => "admin_screen",
     },
+    'rss' =>
+    {
+        'url' => "/index.rss",
+        'func' => "rss_feed",
+    },
 );
 
 my %urls_to_modes = (map { $modes{$_}->{'url'} => $_ } keys(%modes));
+
+__PACKAGE__->mk_accessors(qw(config));
 
 sub setup
 {
@@ -145,7 +155,7 @@ sub initialize
 	my $self = shift;
 	
     my $config = shift;
-	$self->{'config'} = $config; 
+	$self->config($config); 
 
     my $tt = Template->new(
         {
@@ -265,14 +275,33 @@ EOF
     return $ret;
 }
 
+sub get_string
+{
+    my $self = shift;
+    my $string_id = shift;
+
+    return $self->config()->{'strings'}->{$string_id};
+}
+
+sub get_dsn
+{
+    my $self = shift;
+
+    return $self->config()->{'dsn'};
+}
+
+sub dbi_connect
+{
+    my $self = shift;
+    return DBI->connect($self->get_dsn());
+}
 sub main_page
 {
     my $self = shift;
 
     my $ret = "";
-    my $config = $self->{'config'};
     
-    my $title = $config->{'strings'}->{'main_title'};
+    my $title = $self->get_string('main_title');
     
     $ret .= $self->linux_il_header($title, $title);
     
@@ -288,7 +317,7 @@ EOF
 
     ;
 
-    foreach my $area (@{$config->{'areas'}})
+    foreach my $area (@{$self->config()->{'areas'}})
     {
     	$ret .= ( "<option>" . $area . "</option>\n");
     }
@@ -307,9 +336,9 @@ EOF
 	;
 
     $ret .= "<ul>\n";
-    $ret .= "<li><a href=\"./search/?all=1\">" . $config->{'strings'}->{'show_all_records_text'} . "</a></li>\n";
-    $ret .= "<li><a href=\"./add/\">" . $config->{'strings'}->{'add_a_record_text'} . "</a></li>\n";
-    $ret .= "<li><a href=\"./remove/\">" . $config->{'strings'}->{'remove_a_record_text'} . "</a></li>\n" ;
+    $ret .= "<li><a href=\"./search/?all=1\">" . $self->get_string('show_all_records_text') . "</a></li>\n";
+    $ret .= "<li><a href=\"./add/\">" . $self->get_string('add_a_record_text') . "</a></li>\n";
+    $ret .= "<li><a href=\"./remove/\">" . $self->get_string('remove_a_record_text') . "</a></li>\n" ;
     $ret .= "</ul>\n";
 
     $ret .= linux_il_footer();
@@ -358,24 +387,34 @@ sub render_record
     my $ret = "";
     my %args = (@_);
 
-    my $config = $self->{config};
     my $values = $args{'values'};
     my $fields = $args{'fields'};
+    my $with_toolbox = $args{'toolbox'};
 
     my $vars = { map { $fields->[$_] => htmlize($values->[$_]) } (0 .. $#$values)};
+
+    if ($with_toolbox)
+    {
+        $vars->{'toolbox'} = 1;
+    }
         
     $self->get_record_template_gen()->process('main', $vars, \$ret);
 
     return $ret;
 }
 
+sub get_fields
+{
+    my $self = shift;
+
+    return @{$self->config()->{'fields'}};
+}
+
 sub get_field_names
 {
     my $self = shift;
 
-    my $config = $self->{config};
-    
-    my @field_names = ("area", "id", (map { $_->{'sql'} } @{$config->{'fields'}}));
+    my @field_names = ("area", "id", (map { $_->{'sql'} } $self->get_fields()));
 
     return \@field_names;
 }
@@ -406,11 +445,9 @@ sub display_records
 
     my $display_toolbox = $args{'toolbox'} || 0;
 
-    my $config = $self->{'config'};
-    
-    my $conn = DBI->connect($config->{'dsn'});
+    my $conn = $self->dbi_connect();
 
-    my @area_list = @{$config->{'areas'}};
+    my @area_list = @{$self->config()->{'areas'}};
     
     my $ret = "";
 
@@ -435,7 +472,7 @@ sub display_records
 
     		my (@search_clauses);
 
-    		foreach my $field (@{$config->{'fields'}})
+    		foreach my $field ($self->get_fields())
     		{
     			push @search_clauses, "(" . $field->{'sql'} . " LIKE '%" . $keyword_param
     			. "%')";
@@ -462,9 +499,9 @@ sub display_records
     push @$field_names, ('status');
 
     my $query_str = "SELECT " . join(", ", @$field_names).  
-                    " FROM " . $config->{'table_name'} . 
+                    " FROM " . $self->config()->{'table_name'} . 
     		" " . $where_clause_template . 
-    		(" ORDER BY " . ($config->{'order_by'} || "id DESC"));
+    		(" ORDER BY " . ($self->config()->{'order_by'} || "id DESC"));
 
     my $sth = $conn->prepare($query_str);
 
@@ -479,21 +516,15 @@ sub display_records
 
     my ($string);
 
-    my $field_names_with_usability_additions = [ @$field_names ];
-
-    if ($display_toolbox)
-    {
-        push @$field_names_with_usability_additions, 'toolbox';
-    }
-
     my $values;
 
     while ($values = $sth->fetchrow_arrayref())
     {
-        my $string = 
+        my $string =
             $self->render_record(
-                'values' => ($display_toolbox ? [@$values, 1] : \@$values),
-                'fields' => $field_names_with_usability_additions,
+                'values' => $values,
+                'fields' => $field_names,
+                'toolbox' => $display_toolbox,
             );
 
         push @{$areas_jobs{$values->[0]}}, $string;
@@ -576,7 +607,7 @@ sub get_form_fields
         ],
         validators => [],
         $get_attribs->(),
-        hint => $config->{strings}->{area_hint},
+        hint => $self->get_string('area_hint'),
     };
 
     # Number of characters for the input tag or textarea to be as wide;
@@ -585,7 +616,7 @@ sub get_form_fields
 
     
 
-    foreach my $f (@{$config->{fields}})
+    foreach my $f ($self->get_fields())
     {
         if ($f->{'gen'}->{'auto'})
         {
@@ -643,7 +674,7 @@ sub get_form_fields_sequence
     # Don't forget to put the area - otherwise WWW::Form won't display it.
     push @ret, 'area';
     
-    foreach my $f (@{$config->{fields}})
+    foreach my $f ($self->get_fields())
     {
         if ($f->{'gen'}->{'auto'})
         {
@@ -704,7 +735,7 @@ sub add_form
 
     my (@values, @field_names);
 
-    foreach my $a (@{$config->{'fields'}})
+    foreach my $a ($self->get_fields())
     {
     	push @field_names, $a->{'sql'};
         my $v;
@@ -737,7 +768,7 @@ sub add_form
         }
         elsif ($valid_params)
         {
-            $ret .= $self->linux_il_header($config->{'strings'}->{'preview_result_title'}, "Preview the Added Record");
+            $ret .= $self->linux_il_header($config->get_string('preview_result_title'), "Preview the Added Record");
         }
         else
         {
@@ -778,10 +809,10 @@ sub add_form
     }
     else
     {
-        $ret .= $self->linux_il_header($config->{'strings'}->{'add_result_title'}, "Success");
+        $ret .= $self->linux_il_header($self->get_string('add_result_title'), "Success");
 
-        my $conn = DBI->connect($config->{'dsn'});
-        my $query_str = "INSERT INTO " . $config->{'table_name'} . 
+        my $conn = $self->dbi_connect();
+        my $query_str = "INSERT INTO " . $config->{'table_name'} .
             " (" . join(",", "id", "status", "area", @field_names) . ") " .
             " VALUES ($id, 1, '" . $q->param("area") . "'," .  join(",", (map { $conn->quote($_); } @values)) . ")";
 
@@ -794,9 +825,11 @@ The job was added to the database.<br>
 <br>
 EOF
         ;
-        
-        $ret .= "<a href=\"../\">" . $config->{'strings'}->{'add_back_link_text'} . "</a>\n";
-    }   
+
+        $self->update_rss_feed($conn);
+
+        $ret .= "<a href=\"../\">" . $self->get_string('add_back_link_text') . "</a>\n";
+    }
 
     $ret .= linux_il_footer();
 
@@ -816,6 +849,15 @@ sub css_stylesheet
     return $output;
 }
 
+sub update_rss_feed
+{
+    my $self = shift;
+
+    my $conn = shift;
+
+    return 0;
+}
+
 sub admin_screen
 {
     my $self = shift;
@@ -832,11 +874,11 @@ sub remove
 
     my $config = $self->{config};
     
-    my $service = $config->{strings}->{'service'};
+    my $service = $self->get_string('service');
 
     my $ret = "";
 
-    $ret .= $self->linux_il_header($config->{'strings'}->{'remove_result_title'}, "Remove a Job");
+    $ret .= $self->linux_il_header($self->get_string('remove_result_title'), "Remove a Job");
 
     $ret .= <<"EOF" ;
 <p>
@@ -859,6 +901,26 @@ EOF
     $ret .= linux_il_footer();
 
     return $ret;
+}
+
+sub rss_feed
+{
+    my $self = shift;
+
+    my $conn = $self->dbi_connect();
+
+    my $sth = $conn->prepare("SELECT xmltext FROM jobs2_feeds " . 
+        "WHERE relevance = 'all' AND format = 'rss'");
+
+    $sth->execute();
+
+    my $values = $sth->fetchrow_arrayref();
+
+    $self->header_props(-type => "text/rss");
+
+    $conn->disconnect();
+
+    return $values->[0];
 }
 
 1;

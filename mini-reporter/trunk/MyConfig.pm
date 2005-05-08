@@ -22,6 +22,7 @@ $config =
     },
     'dsn' => 'dbi:mysql:test_jobs',
     'table_name' => 'jobs2',
+    'rss_table_name' => 'jobs2_feeds',
     'areas' => [ "Tel Aviv", "Haifa", "Jerusalem", "North", "South" ],
     'order_by' => "post_date DESC, id DESC",
     'fields' =>
