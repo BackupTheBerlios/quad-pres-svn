@@ -1,11 +1,11 @@
 package Shlomif::MiniReporter;
 
 use strict;
+use warnings;
 use DBI;
 use Template;
 # Inherit from CGI::Application.
 use base 'CGI::Application';
-use MyConfig;
 
 use WWW::Form;
 
@@ -51,7 +51,7 @@ sub setup
 {
     my $self = shift;
 
-    $self->initialize($MyConfig::config);
+    $self->initialize($self->param('config'));
 
     $self->start_mode("main");
     $self->mode_param(\&determine_mode);
@@ -576,8 +576,7 @@ sub get_form_fields
         ],
         validators => [],
         $get_attribs->(),
-        hint => ("The area in Israel of the employing firm.<br />" . 
-                "If the work is from home, select the area of the office."),
+        hint => $config->{strings}->{area_hint},
     };
 
     # Number of characters for the input tag or textarea to be as wide;
@@ -833,6 +832,7 @@ sub remove
 
     my $config = $self->{config};
     
+    my $service = $config->{strings}->{'service'};
 
     my $ret = "";
 
@@ -840,16 +840,16 @@ sub remove
 
     $ret .= <<"EOF" ;
 <p>
-In order to remove your entry from the job list, please send a personal
+In order to remove your entry from the $service, please send a personal
 E-mail to <a href="mailto:webmaster\@iglu.org.il">webmaster\@iglu.org.il</a>
 specifying the entry you wish to remove. (please be as clear as possible,
 and as detailed as necessary.) We will disable it (so it won't be seen)
 and let you know about it.
 </p>
 <p>
-We regret the fact that there isn't an automated mechanism for disabiling 
+We regret the fact that there isn't an automated mechanism for disabling 
 an entry. However, this will require much more work to be conducted in the
-jobs tracker. This may be done in the future, but at the moment the gain
+$service. This may be done in the future, but at the moment the gain
 is far below the effort that would need to be invested.
 </p>
 EOF
