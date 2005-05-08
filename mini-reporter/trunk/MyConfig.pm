@@ -131,7 +131,7 @@ $config =
             len => 100,
         },
     ],
-    'record_template' => <<EOF
+    'record_template' => <<'EOF',
 <div class="record[% IF toolbox %] recadmin[% END %]">
 <h3>[% title %]</h3>
 <p class="posted">
@@ -171,6 +171,30 @@ Posted at <b>[% post_date %]</b>
 </p>
 </div>
 [% END %]
+EOF
+
+    'record_rss_template' => <<'EOF',
+[% title %]
+
+Posted at [% post_date %]
+
+Company: [% workplace %]
+
+Job Description:
+
+[% description %]
+
+Requirements:
+
+[% requirements %]
+
+Address: [% address %]
+Phone: [% phone %]
+Cell Phone: [% cellphone %]
+Fax: [% fax %]
+E-mail: [% email %]
+Contact Person Name: [% contact_person %]
+
 EOF
 };
 

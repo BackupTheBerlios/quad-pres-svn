@@ -3,6 +3,7 @@ package Shlomif::MiniReporter;
 use strict;
 use warnings;
 use DBI;
+use POSIX qw();
 use Template;
 # Inherit from CGI::Application.
 use base 'CGI::Application';
@@ -173,6 +174,15 @@ sub initialize
     );
 
     $self->{'record_tt'} = $tt;
+
+    $self->{'record_rss_tt'} = Template->new(
+        {
+            'BLOCKS' => 
+                {
+                    'main' => $config->{'record_rss_template'},
+                },
+        },
+    );
 
 	return 0;
 }
@@ -396,6 +406,7 @@ sub render_record
     my $values = $args{'values'};
     my $fields = $args{'fields'};
     my $with_toolbox = $args{'toolbox'};
+    my $template = $args{'template'} || "record_tt";
 
     my $vars = { map { $fields->[$_] => htmlize($values->[$_]) } (0 .. $#$values)};
 
@@ -403,8 +414,8 @@ sub render_record
     {
         $vars->{'toolbox'} = 1;
     }
-        
-    $self->get_record_template_gen()->process('main', $vars, \$ret);
+
+    $self->{$template}->process('main', $vars, \$ret);
 
     return $ret;
 }
@@ -478,12 +489,17 @@ sub construct_fetch_query
 
     push @$field_names, ('status');
 
-    my $query_str = "SELECT " . join(", ", @$field_names).  
-                    " FROM " . $self->config()->{'table_name'} . 
-    		" " . $where_clause_template . 
-    		(" ORDER BY " . ($self->config()->{'order_by'} || "id DESC"));
+    my $limit_clause = exists($args->{'max_num_records'}) ? 
+        " LIMIT " . $args->{'max_num_records'} :
+        "";
 
-    return 
+    my $query_str = "SELECT " . join(", ", @$field_names) .
+                    " FROM " . $self->config()->{'table_name'} .
+    		" " . $where_clause_template .
+    		(" ORDER BY " . ($self->config()->{'order_by'} || "id DESC")) .
+            $limit_clause;
+
+    return
         {
             'field_names' => $field_names,
             'query' => $query_str,
@@ -867,11 +883,96 @@ sub css_stylesheet
     return $output;
 }
 
+sub get_url_to_main
+{
+    my $self = shift;
+
+    my $script_uri = $ENV{'SCRIPT_URI'};
+
+    my $path_info = $self->query()->path_info();
+
+    my $url = substr($script_uri, 0, - length($path_info));
+
+    return $url.'/';
+}
+
 sub update_rss_feed
 {
     my $self = shift;
 
     my $conn = shift;
+
+    my $query = 
+        $self->construct_fetch_query(
+            {
+                'all_records' => 1, 
+                'max_num_records' => 15
+            }
+        );
+
+    my $sth = $conn->prepare($query->{'query'});
+
+    $sth->execute();
+
+    my $rss_feed = XML::RSS->new('version' => "2.0");
+
+    $rss_feed->channel(
+        'title' => $self->get_string('main_title'),
+        'link' => $self->get_url_to_main(),
+        'language' => "en-us",
+        'description' => $self->get_string('main_title'),
+        'rating' => '(PICS-1.1 "http://www.classify.org/safesurf/" 1 r (SS~~000 1))',
+        'copyright' => "Copyright by the Posters",
+        'pubDate' => (scalar(localtime())),
+        'lastBuildDate' => (scalar(localtime())),
+        'docs' => "http://blogs.law.harvard.edu/tech/rss",
+        'ttl' => "360",
+        'generator' => "Perl and XML::RSS",
+        );
+
+    my $values;
+
+    while ($values = $sth->fetchrow_arrayref())
+    {
+        my %fields = 
+            (map 
+                { $query->{'field_names'}->[$_] => $values->[$_] } 
+                (0 .. $#$values)
+            );
+
+        $fields{'post_date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/;
+        my ($date_year, $date_month, $date_day) = ($1,$2,$3);
+        my $date_time =
+            POSIX::mktime(0, 30, 18, $date_day, $date_month-1, $date_year-1900);
+
+        my $item_url = $self->get_url_to_main() . "show-job/" . $fields{'id'} . "/";
+    
+        $rss_feed->add_item(
+            'title' => $fields{'title'},
+            (map { $_ => $item_url, } (qw(permaLink link))),
+            'enclosure' => { 'url' => $item_url},
+            'description' => 
+                $self->render_record(
+                    'values' => $values,
+                    'fields' => $query->{'field_names'},
+                    'template' => "record_rss_tt",
+                ),
+            'author' => "Unknown",
+            'pubDate' => scalar(localtime($date_time)),
+            'category' => "Meetings",
+        );
+    }
+
+    my $rss_data = $rss_feed->as_string();
+
+    undef($rss_feed);
+
+    $sth = $conn->prepare(
+        "UPDATE " . $self->config()->{'rss_table_name'} . 
+        " SET xmltext = ? WHERE relevance = 'all' AND format = 'rss'"
+        );
+
+    $sth->execute($rss_data);
 
     return 0;
 }
