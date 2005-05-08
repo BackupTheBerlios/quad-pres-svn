@@ -82,6 +82,12 @@ sub redirect_to_main
 
 }
 
+sub get_area_list
+{
+    my $self = shift;
+    return @{$self->config()->{'areas'}};
+}
+
 sub correct_path
 {
     my $self = shift;
@@ -317,7 +323,7 @@ EOF
 
     ;
 
-    foreach my $area (@{$self->config()->{'areas'}})
+    foreach my $area ($self->get_area_list())
     {
     	$ret .= ( "<option>" . $area . "</option>\n");
     }
@@ -419,43 +425,20 @@ sub get_field_names
     return \@field_names;
 }
 
-=head2 $self->display_records(%args)
-
-Accepts the following optional parameters:
-
-    all_records - if set, display all records (by default only active ones)
-    keyword - a keyword to search for.
-    area_choice - an area to choose for (or All for all areas)
-    toolbox - display the toolbox of admining a record (defaults to 0)
-    show_disabled - show disabled records as well.
-    show_enabled - show enabled records as well.
-=cut
-
-sub display_records
+sub construct_fetch_query
 {
     my $self = shift;
+    my $args = shift;
 
-    my %args = (@_);
+    my $keyword_param = $args->{'keyword'} || "";
 
-    my $all_param = $args{'all_records'} || "";
-
-    my $keyword_param = $args{'keyword'} || "";
-
-    my $area_param = $args{'area_choice'} || "";
-
-    my $display_toolbox = $args{'toolbox'} || 0;
-
-    my $conn = $self->dbi_connect();
-
-    my @area_list = @{$self->config()->{'areas'}};
-    
-    my $ret = "";
+    my $area_param = $args->{'area_choice'} || "";
 
     my ($where_clause_template, @areas);
 
-    my %does_area_exists_map = (map { $_ => 1} @area_list);
+    my @area_list = $self->get_area_list();
 
-    if ($all_param eq "1")
+    if ($args->{'all_records'} eq "1")
     {
     	$where_clause_template = "WHERE status=1";
     	
@@ -468,7 +451,7 @@ sub display_records
     	}
     	else
     	{
-    		$keyword_param =~ s/'/ /g;
+    		$keyword_param =~ s/['%]/ /g;
 
     		my (@search_clauses);
 
@@ -491,9 +474,6 @@ sub display_records
     	}
     }
 
-
-    $ret .= $self->linux_il_header("Search Results", "Search Results");
-
     my $field_names = $self->get_field_names();
 
     push @$field_names, ('status');
@@ -503,13 +483,51 @@ sub display_records
     		" " . $where_clause_template . 
     		(" ORDER BY " . ($self->config()->{'order_by'} || "id DESC"));
 
-    my $sth = $conn->prepare($query_str);
+    return 
+        {
+            'field_names' => $field_names,
+            'query' => $query_str,
+            'areas' => \@areas,
+        };
+}
+
+=head2 $self->display_records(%args)
+
+Accepts the following optional parameters:
+
+    all_records - if set, display all records (by default only active ones)
+    keyword - a keyword to search for.
+    area_choice - an area to choose for (or All for all areas)
+    toolbox - display the toolbox of admining a record (defaults to 0)
+    show_disabled - show disabled records as well.
+    show_enabled - show enabled records as well.
+=cut
+
+sub display_records
+{
+    my $self = shift;
+
+    my %args = (@_);
+
+    my $display_toolbox = $args{'toolbox'} || 0;
+
+    my $conn = $self->dbi_connect();
+
+    my $ret = "";
+
+    my %does_area_exists_map = (map { $_ => 1} $self->get_area_list());
+
+    $ret .= $self->linux_il_header("Search Results", "Search Results");
+
+    my $query = $self->construct_fetch_query(\%args);
+
+    my $sth = $conn->prepare($query->{'query'});
 
     $sth->execute();
 
     my (%areas_jobs);
 
-    foreach my $a (@area_list)
+    foreach my $a ($self->get_area_list())
     {
     	$areas_jobs{$a} = [ ];
     }
@@ -523,14 +541,14 @@ sub display_records
         my $string =
             $self->render_record(
                 'values' => $values,
-                'fields' => $field_names,
+                'fields' => $query->{'field_names'},
                 'toolbox' => $display_toolbox,
             );
 
         push @{$areas_jobs{$values->[0]}}, $string;
     }
 
-    AREA_LOOP: foreach my $area (@areas)
+    AREA_LOOP: foreach my $area (@{$query->{'areas'}})
     {
         # Check if the area is a valid one and if not skip this 
         # iteration.
@@ -768,7 +786,7 @@ sub add_form
         }
         elsif ($valid_params)
         {
-            $ret .= $self->linux_il_header($config->get_string('preview_result_title'), "Preview the Added Record");
+            $ret .= $self->linux_il_header($self->get_string('preview_result_title'), "Preview the Added Record");
         }
         else
         {
