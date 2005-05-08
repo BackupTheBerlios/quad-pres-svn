@@ -229,6 +229,10 @@ sub linux_il_header
 
     my $css_path = join("", @css_path_components);
 
+    my $index_rss = $self->get_rss_table_name() ? 
+        qq(<link rel="alternate" title="Better SCM RSS Feed" href="./${css_path}index.rss" type="application/rss+xml" />) :
+        "";
+
 	$ret .= <<"EOF"
 <!DOCTYPE html
     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -238,7 +242,7 @@ sub linux_il_header
 <head>
 $title1
 <link rel="stylesheet" href="./${css_path}style.css" type="text/css" />
-<link rel="alternate" title="Better SCM RSS Feed" href="./${css_path}index.rss" type="application/rss+xml" />
+$index_rss
 </head>
 <body>
 <p>
@@ -356,7 +360,10 @@ EOF
     $ret .= "<li><a href=\"./search/?all=1\">" . $self->get_string('show_all_records_text') . "</a></li>\n";
     $ret .= "<li><a href=\"./add/\">" . $self->get_string('add_a_record_text') . "</a></li>\n";
     $ret .= "<li><a href=\"./remove/\">" . $self->get_string('remove_a_record_text') . "</a></li>\n" ;
-    $ret .= "<li><a href=\"./index.rss\">Subscribe to our RSS Feed</a></li>\n";
+    if ($self->get_rss_table_name())
+    {
+        $ret .= "<li><a href=\"./index.rss\">Subscribe to our RSS Feed</a></li>\n";
+    }
     $ret .= "</ul>\n";
 
     $ret .= linux_il_footer();
@@ -854,6 +861,8 @@ sub add_form
 
         $conn->do($query_str);
 
+        $self->update_rss_feed($conn);
+
         $conn->disconnect();
 
         $ret .= <<'EOF';
@@ -861,8 +870,6 @@ The job was added to the database.<br>
 <br>
 EOF
         ;
-
-        $self->update_rss_feed($conn);
 
         $ret .= "<a href=\"../\">" . $self->get_string('add_back_link_text') . "</a>\n";
     }
@@ -898,9 +905,20 @@ sub get_url_to_main
     return $url.'/';
 }
 
+sub get_rss_table_name
+{
+    my $self = shift;
+    return $self->config()->{'rss_table_name'};
+}
+
 sub update_rss_feed
 {
     my $self = shift;
+
+    if (! $self->get_rss_table_name())
+    {
+        return;
+    }
 
     my $conn = shift;
 
@@ -970,7 +988,7 @@ sub update_rss_feed
     undef($rss_feed);
 
     $sth = $conn->prepare(
-        "UPDATE " . $self->config()->{'rss_table_name'} . 
+        "UPDATE " . $self->get_rss_table_name() . 
         " SET xmltext = ? WHERE relevance = 'all' AND format = 'rss'"
         );
 
@@ -1027,6 +1045,11 @@ EOF
 sub rss_feed
 {
     my $self = shift;
+
+    if (! $self->get_rss_table_name())
+    {
+        return "";
+    }
 
     my $conn = $self->dbi_connect();
 
