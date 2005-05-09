@@ -20,6 +20,7 @@ $config =
         'area_hint' => "The area in Israel of the employing firm.<br />" . 
                 "If the work is from home, select the area of the office.",
     },
+    'admin_password' => "Charles-Ludlam-650",
     'dsn' => 'dbi:mysql:test_jobs',
     'table_name' => 'jobs2',
     'rss_table_name' => 'jobs2_feeds',

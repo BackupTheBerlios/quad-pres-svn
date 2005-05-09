@@ -52,6 +52,16 @@ my %modes =
         'url' => "/index.rss",
         'func' => "rss_feed",
     },
+    'update_rss' => 
+    {
+        'url' => "/update-rss/",
+        'func' => "update_rss",
+    },
+    'show_record' =>
+    {
+        'url' => "/show-record/",
+        'func' => "show_record",
+    },
 );
 
 my %urls_to_modes = (map { $modes{$_}->{'url'} => $_ } keys(%modes));
@@ -80,7 +90,9 @@ sub setup
 
 sub redirect_to_main
 {
+    my $self = shift;
 
+    return "<html><body><h1>URL Not Found</h1></body></html>";
 }
 
 sub get_area_list
@@ -139,6 +151,10 @@ sub determine_mode
     {
         return "correct_path";
     }
+
+    $path =~ m{^(/[^/]+/?)};
+
+    $path = $1;
 
     my $mode = $urls_to_modes{$path};
 
@@ -316,6 +332,7 @@ sub dbi_connect
     my $self = shift;
     return DBI->connect($self->get_dsn());
 }
+
 sub main_page
 {
     my $self = shift;
@@ -454,11 +471,18 @@ sub construct_fetch_query
 
     my $area_param = $args->{'area_choice'} || "";
 
+    my $id_param = $args->{'id'};
+
     my ($where_clause_template, @areas);
 
     my @area_list = $self->get_area_list();
 
-    if ($args->{'all_records'} eq "1")
+    if (defined($id_param))
+    {
+        # $id_param is guaranteed to be numeric so no need for quote() here.
+        $where_clause_template = "WHERE status=1 AND id=$id_param";
+    }
+    elsif ($args->{'all_records'} eq "1")
     {
     	$where_clause_template = "WHERE status=1";
     	
@@ -896,6 +920,7 @@ sub get_url_to_main
 {
     my $self = shift;
 
+    # SCIPRT_URI requires Apache 1.3.x's mod_rewrite
     my $script_uri = $ENV{'SCRIPT_URI'};
 
     my $path_info = $self->query()->path_info();
@@ -972,11 +997,10 @@ sub update_rss_feed
             (map { $_ => $item_url, } (qw(permaLink link))),
             'enclosure' => { 'url' => $item_url},
             'description' => 
-                $self->render_record(
+                htmlize($self->render_record(
                     'values' => $values,
                     'fields' => $query->{'field_names'},
-                    'template' => "record_rss_tt",
-                ),
+                )),
             'author' => "Unknown",
             'pubDate' => scalar(localtime($date_time)),
             'category' => "Meetings",
@@ -1067,6 +1091,55 @@ sub rss_feed
     return $values->[0];
 }
 
+sub update_rss
+{
+    my $self = shift;
+    
+    # A security measurement to make sure this feature is not abused.
+    # requires passing the password as a CGI parameter
+    if ($self->query()->param('password') ne $self->config()->{'admin_password'})
+    {
+        return "<p>You are unauthorized to do this. Either the password is wrong or you should go away.</p>";
+    }
+    $self->update_rss_feed($self->dbi_connect());
+    return "<p>RSS Feed Updated.</p>";
+}
+
+sub show_record
+{
+    my $self = shift;
+    $self->get_path() =~ /\/show-record\/(\d+)\// or
+        return $self->redirect_to_main();
+    my $record_id = $1;
+
+    my $ret = "";
+    $ret .= $self->linux_il_header();
+
+    my $query = $self->construct_fetch_query({'id' => $record_id});
+
+    my $conn = $self->dbi_connect();
+
+    my $sth = $conn->prepare($query->{'query'});
+
+    $sth->execute();
+
+    my $values = $sth->fetchrow_arrayref();
+
+    if (!defined($values))
+    {
+        $ret .= "<h1>Record not found - sorry</h1>";
+    }
+    else
+    {
+        $ret .= $self->render_record(
+                'values' => $values,
+                'fields' => $query->{'field_names'},
+                'toolbox' => 0,
+            );
+    }
+
+    $ret .= $self->linux_il_footer();
+}
 1;
 
 

@@ -11,6 +11,6 @@ chmod 755 App.pl
 rsync -v --progress --rsh=ssh --relative \
     App.pl invalidate-records.pl populate-new-table.pl \
     MyConfig.pm style.css Shlomif/MiniReporter.pm \
-    Consultants.pl ConsultantsConfig.pm \
+    Consultants.pl ConsultantsConfig.pm update-rss-feed.pl \
     "$upload_to"
 
