@@ -12,5 +12,6 @@ rsync -v --progress --rsh=ssh --relative \
     App.pl invalidate-records.pl populate-new-table.pl \
     MyConfig.pm style.css Shlomif/MiniReporter.pm \
     Consultants.pl ConsultantsConfig.pm update-rss-feed.pl \
+    admin-password.txt \
     "$upload_to"
 
