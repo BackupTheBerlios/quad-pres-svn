@@ -152,9 +152,12 @@ sub determine_mode
         return "correct_path";
     }
 
-    $path =~ m{^(/[^/]+/?)};
+    if ($path ne "/")
+    {
+        $path =~ m{^(/[^/]+/?)};
 
-    $path = $1;
+        $path = $1;
+    }
 
     my $mode = $urls_to_modes{$path};
 
