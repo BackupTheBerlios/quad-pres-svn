@@ -1,0 +1,70 @@
+
+<define-tag qpnavigationbar>
+<preserve withkey />
+<set-var %attributes />
+
+<table><tr><:{
+
+    # Assign a default to $translate_control_text
+    $translate_control_text ||= 
+    sub {
+        my $title = shift;
+        return $title;
+    };
+
+    my $with_key = "<get-var withkey />";
+
+    if (!defined($text))
+    {    
+        get_everything();
+    }
+    
+
+    foreach my $c (@controls)
+    {
+        if ($c->{'hide'})
+        {
+            next;
+        }
+            
+        my $url = $c->{'url'};
+        my $title = $c->{'title'};
+        uniprint "<td>\n";
+
+        # The translated title.
+        my $trans_title = $translate_control_text->($title);
+        
+        if ($url eq "")
+        {
+            uniprint "<b>$trans_title</b>";
+        }
+        else
+        {
+            uniprint "<a href=\"$url\" class=\"nav\"" . ($with_key ? (" accesskey=\"" . lc(substr($title,0,1)) . "\"") : "") . ">$trans_title</a>";
+        }
+        uniprint "</td>\n";
+    }
+}:>
+</tr></table>
+<restore withkey />
+</define-tag>
+
+<qp:html:header />
+<qp:html:bodystart />
+<qpnavigationbar withkey="1" />
+<h1><qp:title /></h1>
+{#BODY#}
+<hr />
+<qpnavigationbar />
+<qp:html:footer />
+</body>
+</html>
+
+{#SUBJECT_LOC#:
+<qp:subject />
+:##}
+
+# by default we are in the body
+{#BODY#:
+
+
