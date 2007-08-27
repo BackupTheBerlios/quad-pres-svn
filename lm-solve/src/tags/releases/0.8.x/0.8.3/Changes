@@ -1,0 +1,14 @@
+0.8.3
+    - Added the Changes file.
+    - Added the jumping_cards.pl example under examples.
+    - Added the MIT X11 license as the LICENSE file.
+    - Added the t/pod.t and t/pod-coverage.t tests and added full
+    POD coverage.
+    - Converted to Build.PL in order to have a better META.yml
+    and other advantages.
+    - All changes are done to improve:
+        http://cpants.perl.org/dist/Games-LMSolve
+    - Mentioned the subversion repository in the README and the main
+    POD file.
+    - Added the common Module-Starter-like URLs for information under
+    "SUPPORT".
